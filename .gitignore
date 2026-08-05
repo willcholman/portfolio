@@ -16,6 +16,9 @@
 /Tour Posters/
 /USC Esports/
 
+# Local tooling settings
+/.claude/
+
 # OS cruft
 Thumbs.db
 desktop.ini
