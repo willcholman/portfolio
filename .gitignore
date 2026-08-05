@@ -1,0 +1,22 @@
+# ---------------------------------------------------------------------------
+# Original artwork (~250 MB of full-resolution exports).
+#
+# The web-ready versions live in assets/img/ and ARE committed. These source
+# folders stay local so the repo stays small enough for GitHub Pages — keep
+# your own backup of them somewhere else.
+#
+# Re-run tools/generate.ps1 after adding artwork; it reads assets/img/.
+# ---------------------------------------------------------------------------
+/About me/
+/Cover Images/
+/Merch Designs/
+/Promotional Material/
+/Social Media/
+/Sports Posters/
+/Tour Posters/
+/USC Esports/
+
+# OS cruft
+Thumbs.db
+desktop.ini
+.DS_Store
