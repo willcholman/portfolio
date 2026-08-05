@@ -16,8 +16,9 @@
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var hasHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 
-  if (reduceMotion || typeof window.gsap === "undefined") return; // CSS fallback handles it
-
+  /* Without GSAP (or on reduced motion) the CSS fallback drives the visuals,
+     but the label still has to be sized to the shape — do that either way. */
+  var animated = !reduceMotion && typeof window.gsap !== "undefined";
   var gsap = window.gsap;
 
   /* Resting scatter. Last entry is the target card, so it sits on top and
@@ -72,6 +73,8 @@
     if (target.complete) fitLabel();
     else target.addEventListener("load", fitLabel);
     window.addEventListener("resize", fitLabel);
+
+    if (!animated) return; // CSS handles the rest state and the hover swap
 
     /* --- rest layout ---------------------------------------------------- */
     cards.forEach(function (card, i) {

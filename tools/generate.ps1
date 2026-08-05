@@ -10,6 +10,11 @@ $ErrorActionPreference = 'Stop'
 $Root = Split-Path -Parent $PSScriptRoot
 $Img  = Join-Path $Root 'assets\img'
 
+# Built from code points so this file stays pure ASCII on disk — PowerShell 5.1
+# misreads UTF-8 without a BOM, which would mangle literal typographic marks.
+$em = [char]0x2014   # em dash
+$rq = [char]0x2019   # right single quote
+
 function Write-Utf8([string]$Path, [string]$Text) {
   $enc = New-Object System.Text.UTF8Encoding($false)
   [IO.File]::WriteAllText($Path, $Text, $enc)
@@ -26,7 +31,7 @@ $Projects = @(
     slug   = 'tour-posters'
     title  = 'Tour Posters'
     client = ''
-    desc   = "Tour and show posters built around each artist's visual world."
+    desc   = "Tour and show posters built around each artist${rq}s visual world."
     target = 'samurai-tour'
     pile   = @('yeat-tour', 'zillakami-tour', 'opium-tour', 'takanaka-tour', 'joji-tour', 'samurai-tour')
   },
@@ -42,7 +47,7 @@ $Projects = @(
     slug   = 'merch-designs'
     title  = 'Merch Designs'
     client = ''
-    desc   = "I've created over 100 designs for clients in the past few years - here are some of my favorites."
+    desc   = "I${rq}ve created over 100 designs for clients in the past few years${em}here are some of my favorites."
     target = 'design-for-kamaara-villains'
     pile   = @('design-for-zillakami', 'design-for-klean-up-krew-racing', 'design-for-sosmula-nyc', 'official-design-for-zumiez-dog-years', 'official-design-for-city-morgue-band', 'design-for-kamaara-villains')
   },
@@ -107,7 +112,7 @@ function Get-Head([string]$prefix, [string]$title, [string]$desc) {
 <title>$t</title>
 <meta name="description" content="$d">
 <meta name="theme-color" content="#000000">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23000'/><text x='50' y='50' font-family='Helvetica,Arial' font-size='52' font-weight='700' fill='%23fff' text-anchor='middle' dominant-baseline='central' letter-spacing='-4'>WH</text></svg>">
+<link rel="icon" type="image/svg+xml" href="${prefix}assets/favicon.svg">
 <link rel="stylesheet" href="${prefix}assets/css/site.css">
 <script>
   (function () {
@@ -126,7 +131,7 @@ function Get-Header([string]$prefix) {
   return @"
 <header class="header">
   <div class="header__inner">
-    <a class="logo" href="${prefix}index.html" aria-label="Will Holman - home"><span>W</span><span>H</span></a>
+    <a class="logo" href="${prefix}index.html" aria-label="Will Holman $em home"><span>W</span><span>H</span></a>
     <nav class="nav" aria-label="Primary">
       <a class="nav__link" data-section="work" href="${prefix}work.html">Work<span class="nav__arrow" aria-hidden="true">&#8599;</span></a>
       <a class="nav__link" data-section="about" href="${prefix}about.html">About<span class="nav__arrow" aria-hidden="true">&#8599;</span></a>
@@ -181,7 +186,7 @@ foreach ($p in $Projects) {
 
   $maskSrc = "assets/img/$($p.slug)/$($map[$p.target].sm)"
   $label = HtmlEnc $p.title
-  $aria = HtmlEnc "$($p.title) - view project"
+  $aria = HtmlEnc "$($p.title) $em view project"
   $cardsHtml = ($cards -join "`n")
 
   $pileBlocks += @"
@@ -199,7 +204,7 @@ $workHtml = @"
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
-$(Get-Head '' 'Work - Will Holman' 'Selected poster, merch, social and campaign design by Will Holman.')
+$(Get-Head '' "Work $em Will Holman" 'Selected poster, merch, social and campaign design by Will Holman.')
 </head>
 <body class="no-js">
 
@@ -255,7 +260,7 @@ for ($i = 0; $i -lt $Projects.Count; $i++) {
     $s = $all[$k]
     $span = $SpanPattern[$k % $SpanPattern.Count]
     $src = "../assets/img/$($p.slug)/$($map[$s].lg)"
-    $alt = HtmlEnc ("{0} - {1}" -f $p.title, ($s -replace '-', ' '))
+    $alt = HtmlEnc ("{0} {1} {2}" -f $p.title, $em, ($s -replace '-', ' '))
     $items += @"
         <figure class="grid__item" data-span="$span">
           <img src="$src" alt="$alt" loading="lazy" decoding="async">
@@ -276,7 +281,7 @@ for ($i = 0; $i -lt $Projects.Count; $i++) {
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
-$(Get-Head '../' "$($p.title) - Will Holman" $p.desc)
+$(Get-Head '../' "$($p.title) $em Will Holman" $p.desc)
 </head>
 <body class="no-js">
 
