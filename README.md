@@ -58,13 +58,22 @@ git push origin main
 
 Then in the repo's **Settings → Pages**, set Source to `main` / `/ (root)`.
 
-## Custom domain
+## Custom domain — currently OFF
 
-The site is served at **<https://willcholman.com>**. The `CNAME` file in the repo
-root is what tells GitHub Pages that — don't delete it.
+The site is presently published at **<https://willcholman.github.io/portfolio/>**.
 
-DNS lives at Namecheap (BasicDNS, `dns1/dns2.registrar-servers.com`), under
-**Domain List → Manage → Advanced DNS**:
+The custom domain is deliberately disabled: `actions/deploy-pages` was timing out
+while waiting for the site to become reachable, and a custom domain whose HTTPS
+certificate has not been issued yet can keep that wait hanging. Publishing to the
+default domain first breaks the circular dependency.
+
+**To switch `willcholman.com` back on** once the site is deploying reliably:
+re-create a `CNAME` file in the repo root containing `willcholman.com`, or set it
+under Settings → Pages → Custom domain. Then wait for the certificate and tick
+**Enforce HTTPS**.
+
+The DNS is already correct and verified, and lives at Namecheap (BasicDNS,
+`dns1/dns2.registrar-servers.com`) under **Domain List → Manage → Advanced DNS**:
 
 | Type  | Host | Value                  |
 |-------|------|------------------------|
