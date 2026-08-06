@@ -239,6 +239,39 @@ body.no-transition, body.no-transition * { transition: none !important; }
 .page-head__label a { transition: opacity 0.3s var(--ease); }
 .page-head__label a:hover { opacity: 0.62; }
 
+/* Back control on project pages */
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: clamp(22px, 4vh, 38px);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  color: var(--muted);
+  transition: color 0.35s var(--ease);
+}
+.back-link:hover { color: var(--fg); }
+
+.back-link__icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  flex: none;
+  transition: background-color 0.35s var(--ease), color 0.35s var(--ease),
+              border-color 0.35s var(--ease), transform 0.35s var(--ease);
+}
+.back-link__icon svg { width: 15px; height: 15px; display: block; }
+.back-link:hover .back-link__icon {
+  background: var(--fg);
+  color: var(--bg);
+  border-color: var(--fg);
+  transform: translateX(-3px);
+}
+
 .page-head__client {
   margin-top: 14px;
   font-size: clamp(1.05rem, 2vw, 1.5rem);
@@ -558,20 +591,32 @@ body.no-transition, body.no-transition * { transition: none !important; }
 .lightbox__figure {
   position: absolute;
   inset: 0;
-  display: grid;
-  place-items: center;
-  padding: clamp(64px, 10vh, 104px) clamp(56px, 9vw, 132px);
+  /* flex, not grid: as a grid item the image's max-height:100% had no
+     definite row height to resolve against, so it was dropped entirely and
+     tall artwork ran off the bottom of the screen. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(56px, 8vh, 92px) clamp(48px, 7vw, 110px);
   pointer-events: none;
 }
 
 .lightbox__img {
-  max-width: 100%;
-  max-height: 100%;
+  /* Viewport units rather than percentages: these resolve no matter how the
+     container sizes itself, so the artwork is always fully on screen. They
+     also leave clearance for the close button, arrows and counter. */
+  max-width: 84vw;
+  max-height: 76vh;
+  max-height: 76svh;
   width: auto;
   height: auto;
   object-fit: contain;
   will-change: transform, opacity;
   transform-origin: 50% 50%;
+}
+
+@media (max-width: 620px) {
+  .lightbox__img { max-width: 88vw; max-height: 70svh; }
 }
 
 .lightbox__btn {
