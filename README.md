@@ -50,13 +50,16 @@ Everything else — copy, links, layout — is plain HTML you can edit directly.
 
 ## Deploying to GitHub Pages
 
-Create an empty repo named `willcholman.github.io` on GitHub, then:
+The remote is <https://github.com/willcholman/portfolio.git>. To publish:
 
 ```
-git remote add origin https://github.com/willcholman/willcholman.github.io.git
-git branch -M main
-git push -u origin main
+git push origin main
 ```
 
-In the repo's **Settings → Pages**, set Source to `main` / `/ (root)`.
-The site goes live at <https://willcholman.github.io>.
+Then in the repo's **Settings → Pages**, set Source to `main` / `/ (root)`.
+The site goes live at <https://willcholman.github.io/portfolio/>.
+
+Because the repo is named `portfolio` rather than `willcholman.github.io`,
+Pages serves it from the `/portfolio/` subpath. Every link and asset reference
+in this site is relative, so that works with no changes — but if you ever add a
+path starting with `/`, it will break there. Keep paths relative.
