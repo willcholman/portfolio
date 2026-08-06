@@ -31,10 +31,14 @@ function HtmlEnc([string]$s) {
 #  Array order drives the grid order on the landing page, the 01..06 numbering,
 #  and the previous/next links.
 #
-#  pile   = the six cards, in z-order from BACK to FRONT
-#  target = the front card, which the stack collapses onto and which becomes
-#           the solid shape carrying the project name (must be last in pile)
-#  label  = optional raw HTML for the hover label, for controlling line breaks
+#  pile     = the six cards, in z-order from BACK to FRONT
+#  target   = the front card, which the stack collapses onto and which becomes
+#             the solid shape carrying the project name (must be last in pile)
+#  label    = optional raw HTML for the hover label, for controlling line breaks
+#  gridLead = optional running order for the top of the project page grid.
+#             Without it the grid follows `pile`, but that array also fixes the
+#             stacking order, so set this when the two need to differ.
+#             Anything not listed is appended alphabetically.
 $Projects = @(
   [ordered]@{
     slug   = 'social-media'
@@ -49,11 +53,13 @@ $Projects = @(
     slug   = 'usc-esports'
     title  = 'USC Esports'
     label  = ''
-    client = 'Gamecock Esports'
+    client = ''
     desc   = 'Designs created from my time as Gamecock Esports Social Media Manager.'
     target = 'necc-champions-for-usc-esports'
     # player introduction post sits mid-stack, near the centre, tucked behind the front card
     pile   = @('playoffs-gameday-graphic-for-usc-gamecok-esports-smash-bros', 'season-start-usc-esports', 'usc-pubg-1st-place', 'gameday-usc-cs2', 'usc-player-introduction-post', 'necc-champions-for-usc-esports')
+    # ... but runs second on the project page grid
+    gridLead = @('playoffs-gameday-graphic-for-usc-gamecok-esports-smash-bros', 'usc-player-introduction-post', 'season-start-usc-esports', 'usc-pubg-1st-place', 'gameday-usc-cs2', 'necc-champions-for-usc-esports')
   },
   [ordered]@{
     slug   = 'promotional-material'
@@ -300,8 +306,9 @@ for ($i = 0; $i -lt $Projects.Count; $i++) {
   $p = $Projects[$i]
   $map = Get-ProjectImages $p.slug
 
-  # pile picks lead, then everything else alphabetically
-  $lead = @($p.pile | Where-Object { $map.ContainsKey($_) })
+  # gridLead if given, otherwise the pile order; then everything else alphabetically
+  $order = if ($p.gridLead) { $p.gridLead } else { $p.pile }
+  $lead = @($order | Where-Object { $map.ContainsKey($_) })
   $rest = @($map.Keys | Where-Object { $lead -notcontains $_ } | Sort-Object)
   $all = $lead + $rest
 
