@@ -28,37 +28,18 @@ function HtmlEnc([string]$s) {
 }
 
 # --- project definitions -----------------------------------------------------
+#  Array order drives the grid order on the landing page, the 01..06 numbering,
+#  and the previous/next links.
+#
 #  pile   = the six cards, in z-order from BACK to FRONT
 #  target = the front card, which the stack collapses onto and which becomes
 #           the solid shape carrying the project name (must be last in pile)
+#  label  = optional raw HTML for the hover label, for controlling line breaks
 $Projects = @(
-  [ordered]@{
-    slug   = 'tour-posters'
-    title  = 'Tour Posters'
-    client = ''
-    desc   = "Tour and show posters built around each artist${rq}s visual world."
-    target = 'samurai-tour'
-    pile   = @('yeat-tour', 'zillakami-tour', 'opium-tour', 'takanaka-tour', 'joji-tour', 'samurai-tour')
-  },
-  [ordered]@{
-    slug   = 'sports-posters'
-    title  = 'Sports Posters'
-    client = ''
-    desc   = 'Posters for UFC fights and other events.'
-    target = 'ufc-van-vs-taira-concept'
-    pile   = @('ufc-300-concept', 'ufc-320-concept', 'ufc-mexico-concept', 'ufc-313-concept', 'ufc-329-concept', 'ufc-van-vs-taira-concept')
-  },
-  [ordered]@{
-    slug   = 'merch-designs'
-    title  = 'Merch Designs'
-    client = ''
-    desc   = "I${rq}ve created over 100 designs for clients in the past few years${em}here are some of my favorites."
-    target = 'official-design-for-zumiez-dog-years'
-    pile   = @('design-for-zillakami', 'design-for-klean-up-krew-racing', 'design-for-sosmula-nyc', 'design-for-kamaara-villains', 'official-design-for-city-morgue-band', 'official-design-for-zumiez-dog-years')
-  },
   [ordered]@{
     slug   = 'social-media'
     title  = 'Social Media'
+    label  = ''
     client = 'The Design Group'
     desc   = 'Work produced for clients during my time while interning at The Design Group.'
     target = 'illumis-1'
@@ -67,6 +48,7 @@ $Projects = @(
   [ordered]@{
     slug   = 'usc-esports'
     title  = 'USC Esports'
+    label  = ''
     client = 'Gamecock Esports'
     desc   = 'Designs created from my time as Gamecock Esports Social Media Manager.'
     target = 'necc-champions-for-usc-esports'
@@ -76,10 +58,38 @@ $Projects = @(
   [ordered]@{
     slug   = 'promotional-material'
     title  = 'Promotional Material'
+    label  = ''
     client = ''
     desc   = 'Print, out-of-home, and direct mail for clients across insurance, healthcare, automotive, and nonprofit.'
     target = 'honda-3'
     pile   = @('honda-1', 'honda-2', 'engage', 'unausa', 'carver-insurance-1', 'honda-3')
+  },
+  [ordered]@{
+    slug   = 'merch-designs'
+    title  = 'Merch Designs'
+    label  = 'Merch<br>Designs'
+    client = ''
+    desc   = "I${rq}ve created over 100 designs for clients in the past few years${em}here are some of my favorites."
+    target = 'official-design-for-zumiez-dog-years'
+    pile   = @('design-for-zillakami', 'design-for-klean-up-krew-racing', 'design-for-sosmula-nyc', 'design-for-kamaara-villains', 'official-design-for-city-morgue-band', 'official-design-for-zumiez-dog-years')
+  },
+  [ordered]@{
+    slug   = 'sports-posters'
+    title  = 'Sports Posters'
+    label  = ''
+    client = ''
+    desc   = 'Posters for UFC fights and other events.'
+    target = 'ufc-van-vs-taira-concept'
+    pile   = @('ufc-300-concept', 'ufc-320-concept', 'ufc-mexico-concept', 'ufc-313-concept', 'ufc-329-concept', 'ufc-van-vs-taira-concept')
+  },
+  [ordered]@{
+    slug   = 'tour-posters'
+    title  = 'Tour Posters'
+    label  = ''
+    client = ''
+    desc   = "Tour and show posters built around each artist${rq}s visual world."
+    target = 'samurai-tour'
+    pile   = @('yeat-tour', 'zillakami-tour', 'opium-tour', 'takanaka-tour', 'joji-tour', 'samurai-tour')
   }
 )
 
@@ -190,7 +200,8 @@ foreach ($p in $Projects) {
   }
 
   $maskSrc = "assets/img/$($p.slug)/$($map[$p.target].sm)"
-  $label = HtmlEnc $p.title
+  # `label` is raw HTML when set, so a project can control its own line breaks
+  $label = if ($p.label) { $p.label } else { HtmlEnc $p.title }
   $aria = HtmlEnc "$($p.title) $em view project"
   $cardsHtml = ($cards -join "`n")
 
@@ -234,11 +245,8 @@ $(Get-Header '')
   <div class="shell">
 
     <section class="hero">
-      <div>
-        <h1 class="hero__name reveal-line"><span data-hero-line>Will Holman</span></h1>
-        <p class="hero__tagline reveal-line"><span data-hero-line>Marketing &amp; Design $bar Founder</span></p>
-      </div>
-      <p class="hero__aside">Projects</p>
+      <h1 class="hero__name reveal-line"><span data-hero-line>Will Holman</span></h1>
+      <p class="hero__tagline reveal-line"><span data-hero-line>Marketing &amp; Design $bar Founder</span></p>
     </section>
 
     <div class="piles">
