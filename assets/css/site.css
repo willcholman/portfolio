@@ -222,11 +222,13 @@ body.no-transition, body.no-transition * { transition: none !important; }
   margin-bottom: 18px;
 }
 
+/* Matches .hero__name on the landing page — one heading scale across the site.
+   Change both together. */
 .page-head__title {
   font-weight: 700;
-  font-size: clamp(2.6rem, 7.5vw, 6rem);
-  line-height: 0.94;
-  letter-spacing: -0.045em;
+  font-size: clamp(2.2rem, 6.6vw, 5.4rem);
+  line-height: 0.88;
+  letter-spacing: -0.05em;
 }
 
 .page-head__label a { transition: opacity 0.3s var(--ease); }
@@ -240,11 +242,13 @@ body.no-transition, body.no-transition * { transition: none !important; }
   color: var(--muted);
 }
 
+/* Matches .hero__tagline on the landing page. */
 .page-head__sub {
-  margin-top: 20px;
+  margin-top: clamp(12px, 1.4vw, 18px);
   max-width: 62ch;
-  font-size: clamp(1rem, 1.5vw, 1.2rem);
-  line-height: 1.45;
+  font-size: clamp(0.95rem, 1.55vw, 1.3rem);
+  line-height: 1.35;
+  letter-spacing: -0.02em;
   color: var(--muted);
 }
 

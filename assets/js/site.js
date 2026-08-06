@@ -135,13 +135,6 @@
       }
 
       window.location.href = href;
-
-      window.setTimeout(function () {
-        if (status) {
-          status.innerHTML =
-            'Nothing happened? Email <a href="mailto:' + to + '">' + to + "</a> directly.";
-        }
-      }, 2200);
     });
   })();
 

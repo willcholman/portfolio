@@ -220,7 +220,7 @@ $indexHtml = @"
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
-$(Get-Head '' "Will Holman $em Marketing & Design" "Will Holman $em Marketing & Design $bar Founder. Poster, merch, social and campaign design.")
+$(Get-Head '' "Will Holman $em Marketing & Design" "Will Holman $em Marketing & Design. Poster, merch, social and campaign design.")
 </head>
 <body class="no-js" data-page="projects">
 
@@ -246,7 +246,7 @@ $(Get-Header '')
 
     <section class="hero">
       <h1 class="hero__name reveal-line"><span data-hero-line>Will Holman</span></h1>
-      <p class="hero__tagline reveal-line"><span data-hero-line>Marketing &amp; Design $bar Founder</span></p>
+      <p class="hero__tagline reveal-line"><span data-hero-line>Marketing &amp; Design</span></p>
     </section>
 
     <div class="piles">
