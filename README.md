@@ -57,9 +57,24 @@ git push origin main
 ```
 
 Then in the repo's **Settings → Pages**, set Source to `main` / `/ (root)`.
-The site goes live at <https://willcholman.github.io/portfolio/>.
 
-Because the repo is named `portfolio` rather than `willcholman.github.io`,
-Pages serves it from the `/portfolio/` subpath. Every link and asset reference
-in this site is relative, so that works with no changes — but if you ever add a
-path starting with `/`, it will break there. Keep paths relative.
+## Custom domain
+
+The site is served at **<https://willcholman.com>**. The `CNAME` file in the repo
+root is what tells GitHub Pages that — don't delete it.
+
+DNS lives at Namecheap (BasicDNS, `dns1/dns2.registrar-servers.com`), under
+**Domain List → Manage → Advanced DNS**:
+
+| Type  | Host | Value                  |
+|-------|------|------------------------|
+| A     | `@`  | 185.199.108.153        |
+| A     | `@`  | 185.199.109.153        |
+| A     | `@`  | 185.199.110.153        |
+| A     | `@`  | 185.199.111.153        |
+| CNAME | `www`| `willcholman.github.io.`|
+
+Every link and asset reference in this site is relative, so it works at the
+domain root, at `/portfolio/`, and from the local preview server alike. If you
+ever add a path starting with `/`, it will break on the subpath. Keep paths
+relative.
