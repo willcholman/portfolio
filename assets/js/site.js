@@ -87,57 +87,6 @@
     }
   })();
 
-  /* ---------- Contact form → mailto ------------------------------------ */
-  window.WH = window.WH || {};
-
-  window.WH.buildMailto = function (to, fields) {
-    var name = (fields.name || "").trim();
-    var email = (fields.email || "").trim();
-    var subject = (fields.subject || "").trim() || "Portfolio enquiry";
-    var message = (fields.message || "").trim();
-
-    var body =
-      message +
-      "\n\n—\n" +
-      (name ? "From: " + name + "\n" : "") +
-      (email ? "Reply to: " + email + "\n" : "");
-
-    return (
-      "mailto:" + to +
-      "?subject=" + encodeURIComponent(subject) +
-      "&body=" + encodeURIComponent(body)
-    );
-  };
-
-  (function contactForm() {
-    var form = document.querySelector("[data-mailto-form]");
-    if (!form) return;
-
-    var to = form.getAttribute("data-mailto-form");
-    var val = function (id) {
-      var el = form.querySelector("#" + id);
-      return el ? el.value : "";
-    };
-
-    form.addEventListener("submit", function (e) {
-      e.preventDefault();
-
-      var href = window.WH.buildMailto(to, {
-        name: val("name"),
-        email: val("email"),
-        subject: val("subject"),
-        message: val("message")
-      });
-
-      var status = form.querySelector("[data-form-status]");
-      if (status) {
-        status.textContent = "Opening your email app…";
-      }
-
-      window.location.href = href;
-    });
-  })();
-
   /* ---------- Copy to clipboard ---------------------------------------- */
   (function copyButtons() {
     var btns = document.querySelectorAll("[data-copy]");
@@ -156,9 +105,9 @@
           }, 1600);
         };
 
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(text).then(done, function () {});
-        } else {
+        // execCommand path — also the fallback when the async API rejects,
+        // which it does if the document isn't focused or permission is denied
+        var legacyCopy = function () {
           var ta = document.createElement("textarea");
           ta.value = text;
           ta.setAttribute("readonly", "");
@@ -166,8 +115,17 @@
           ta.style.left = "-9999px";
           document.body.appendChild(ta);
           ta.select();
-          try { document.execCommand("copy"); done(); } catch (err) {}
+          var ok = false;
+          try { ok = document.execCommand("copy"); } catch (err) {}
           document.body.removeChild(ta);
+          if (ok) done();
+          return ok;
+        };
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(done, legacyCopy);
+        } else {
+          legacyCopy();
         }
       });
     }
