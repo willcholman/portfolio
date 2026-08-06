@@ -22,14 +22,21 @@
   var gsap = window.gsap;
 
   /* Resting scatter. Last entry is the target card, so it sits on top and
-     nearest the centre — the stack visibly collapses onto it. */
+     nearest the centre — the stack visibly collapses onto it.
+
+     These values are bounded: for the worst case (a square image, which
+     spreads furthest once rotated) the extent from the stage centre is
+     |offset| + (scale/2)(|cos r| + |sin r|), which stays under 0.5 of the
+     stage for every row below. So a card can never escape its own stage,
+     and neighbouring collections cannot touch however tight the grid gap is.
+     Mirrored in the :nth-child rules in site.css — change both together. */
   var REST = [
-    { x: -19, y: -11, r: -13, s: 0.60 },
-    { x:  17, y: -15, r:   9, s: 0.58 },
-    { x: -25, y:  13, r:  -6, s: 0.56 },
-    { x:  23, y:  11, r:  14, s: 0.57 },
-    { x:  -5, y:  -2, r:   4, s: 0.62 },
-    { x:   3, y:  15, r:  -3, s: 0.66 }
+    { x: -16, y:  -9, r: -12, s: 0.52 },
+    { x:  14, y: -13, r:   8, s: 0.50 },
+    { x: -20, y:  11, r:  -5, s: 0.49 },
+    { x:  19, y:   9, r:  12, s: 0.50 },
+    { x:  -4, y:  -2, r:   4, s: 0.55 },
+    { x:   2, y:  13, r:  -3, s: 0.58 }
   ];
 
   var MERGED_SCALE = 0.82;

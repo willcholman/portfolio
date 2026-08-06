@@ -45,13 +45,15 @@
 
   /* ---------- Current nav item ----------------------------------------- */
   (function markCurrent() {
-    var here = window.location.pathname.replace(/\/index\.html$/, "/");
+    // each page declares itself on <body data-page>, so this doesn't depend
+    // on how the site happens to be hosted or what the path looks like
+    var page = document.body.getAttribute("data-page");
+    if (!page) return;
     var links = document.querySelectorAll(".nav__link");
     for (var i = 0; i < links.length; i++) {
-      var href = links[i].getAttribute("href") || "";
-      var section = links[i].getAttribute("data-section");
-      if (!section) continue;
-      if (here.indexOf(section) !== -1) links[i].setAttribute("aria-current", "page");
+      if (links[i].getAttribute("data-section") === page) {
+        links[i].setAttribute("aria-current", "page");
+      }
     }
   })();
 

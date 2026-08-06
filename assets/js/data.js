@@ -2,9 +2,9 @@
 window.WH_DATA = {
   introImages: [
     "assets/img/tour-posters/samurai-tour-sm.jpg",
-    "assets/img/sports-posters/ufc-329-concept-sm.jpg",
-    "assets/img/merch-designs/design-for-kamaara-villains-sm.png",
-    "assets/img/social-media/illumis-2.gif",
+    "assets/img/sports-posters/ufc-van-vs-taira-concept-sm.jpg",
+    "assets/img/merch-designs/official-design-for-zumiez-dog-years-sm.png",
+    "assets/img/social-media/illumis-1-sm.jpg",
     "assets/img/usc-esports/necc-champions-for-usc-esports-sm.jpg",
     "assets/img/promotional-material/honda-3-sm.jpg",
     "assets/img/tour-posters/yeat-tour-sm.jpg",
@@ -17,11 +17,11 @@ window.WH_DATA = {
     "assets/img/sports-posters/ufc-320-concept-sm.jpg",
     "assets/img/merch-designs/design-for-klean-up-krew-racing-sm.png",
     "assets/img/social-media/seabrook-1-sm.jpg",
-    "assets/img/usc-esports/playoffs-gameday-graphic-for-usc-gamecok-esports-smash-bros-sm.jpg",
+    "assets/img/usc-esports/usc-player-introduction-post-sm.jpg",
     "assets/img/promotional-material/engage-sm.jpg",
     "assets/img/tour-posters/takanaka-tour-sm.jpg",
     "assets/img/sports-posters/ufc-mexico-concept-sm.jpg",
-    "assets/img/merch-designs/official-design-for-zumiez-dog-years-sm.png",
+    "assets/img/merch-designs/design-for-kamaara-villains-sm.png",
     "assets/img/social-media/tdg-1-sm.jpg",
     "assets/img/tour-posters/joji-tour-sm.jpg"
   ],

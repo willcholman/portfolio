@@ -1,7 +1,8 @@
 # =============================================================================
 #  generate.ps1
-#  Rebuilds assets/js/data.js, work.html and work/<project>.html from whatever
-#  is currently in assets/img/. Re-run after adding or removing artwork.
+#  Rebuilds index.html (the projects landing page), projects/<slug>.html and
+#  assets/js/data.js from whatever is currently in assets/img/.
+#  Re-run after adding or removing artwork.
 #
 #      powershell -ExecutionPolicy Bypass -File tools\generate.ps1
 # =============================================================================
@@ -14,6 +15,7 @@ $Img  = Join-Path $Root 'assets\img'
 # misreads UTF-8 without a BOM, which would mangle literal typographic marks.
 $em = [char]0x2014   # em dash
 $rq = [char]0x2019   # right single quote
+$bar = [char]0x2502  # box-drawing vertical bar, as used in the tagline
 
 function Write-Utf8([string]$Path, [string]$Text) {
   $enc = New-Object System.Text.UTF8Encoding($false)
@@ -26,6 +28,9 @@ function HtmlEnc([string]$s) {
 }
 
 # --- project definitions -----------------------------------------------------
+#  pile   = the six cards, in z-order from BACK to FRONT
+#  target = the front card, which the stack collapses onto and which becomes
+#           the solid shape carrying the project name (must be last in pile)
 $Projects = @(
   [ordered]@{
     slug   = 'tour-posters'
@@ -40,24 +45,24 @@ $Projects = @(
     title  = 'Sports Posters'
     client = ''
     desc   = 'Posters for UFC fights and other events.'
-    target = 'ufc-329-concept'
-    pile   = @('ufc-300-concept', 'ufc-320-concept', 'ufc-mexico-concept', 'ufc-313-concept', 'ufc-van-vs-taira-concept', 'ufc-329-concept')
+    target = 'ufc-van-vs-taira-concept'
+    pile   = @('ufc-300-concept', 'ufc-320-concept', 'ufc-mexico-concept', 'ufc-313-concept', 'ufc-329-concept', 'ufc-van-vs-taira-concept')
   },
   [ordered]@{
     slug   = 'merch-designs'
     title  = 'Merch Designs'
     client = ''
     desc   = "I${rq}ve created over 100 designs for clients in the past few years${em}here are some of my favorites."
-    target = 'design-for-kamaara-villains'
-    pile   = @('design-for-zillakami', 'design-for-klean-up-krew-racing', 'design-for-sosmula-nyc', 'official-design-for-zumiez-dog-years', 'official-design-for-city-morgue-band', 'design-for-kamaara-villains')
+    target = 'official-design-for-zumiez-dog-years'
+    pile   = @('design-for-zillakami', 'design-for-klean-up-krew-racing', 'design-for-sosmula-nyc', 'design-for-kamaara-villains', 'official-design-for-city-morgue-band', 'official-design-for-zumiez-dog-years')
   },
   [ordered]@{
     slug   = 'social-media'
     title  = 'Social Media'
     client = 'The Design Group'
     desc   = 'Work produced for clients during my time while interning at The Design Group.'
-    target = 'illumis-2'
-    pile   = @('tdg-1', 'rcm-3', 'greener-2', 'coggin-2', 'seabrook-1', 'illumis-2')
+    target = 'illumis-1'
+    pile   = @('tdg-1', 'rcm-3', 'greener-2', 'coggin-2', 'seabrook-1', 'illumis-1')
   },
   [ordered]@{
     slug   = 'usc-esports'
@@ -65,7 +70,8 @@ $Projects = @(
     client = 'Gamecock Esports'
     desc   = 'Designs created from my time as Gamecock Esports Social Media Manager.'
     target = 'necc-champions-for-usc-esports'
-    pile   = @('playoffs-gameday-graphic-for-usc-gamecok-esports-smash-bros', 'season-start-usc-esports', 'usc-pubg-1st-place', 'gameday-usc-cs2', 'necc-usc-cs2-qualified', 'necc-champions-for-usc-esports')
+    # player introduction post sits mid-stack, near the centre, tucked behind the front card
+    pile   = @('playoffs-gameday-graphic-for-usc-gamecok-esports-smash-bros', 'season-start-usc-esports', 'usc-pubg-1st-place', 'gameday-usc-cs2', 'usc-player-introduction-post', 'necc-champions-for-usc-esports')
   },
   [ordered]@{
     slug   = 'promotional-material'
@@ -133,7 +139,7 @@ function Get-Header([string]$prefix) {
   <div class="header__inner">
     <a class="logo" href="${prefix}index.html" aria-label="Will Holman $em home"><span>W</span><span>H</span></a>
     <nav class="nav" aria-label="Primary">
-      <a class="nav__link" data-section="work" href="${prefix}work.html">Work<span class="nav__arrow" aria-hidden="true">&#8599;</span></a>
+      <a class="nav__link" data-section="projects" href="${prefix}index.html">Projects<span class="nav__arrow" aria-hidden="true">&#8599;</span></a>
       <a class="nav__link" data-section="about" href="${prefix}about.html">About<span class="nav__arrow" aria-hidden="true">&#8599;</span></a>
       <a class="nav__link" data-section="contact" href="${prefix}contact.html">Contact<span class="nav__arrow" aria-hidden="true">&#8599;</span></a>
       <button class="toggle" type="button" aria-pressed="false" aria-label="Switch to light mode">
@@ -166,20 +172,19 @@ function Get-Footer() {
 }
 
 # =============================================================================
-#  work.html - the piles
+#  index.html - intro, masthead, and the piles
 # =============================================================================
 $pileBlocks = @()
 foreach ($p in $Projects) {
   $map = Get-ProjectImages $p.slug
 
-  # target always last so it sits on top of the stack
+  # honour the declared z-order; guarantee the target ends up on top
   $order = @($p.pile | Where-Object { $_ -ne $p.target }) + @($p.target)
 
   $cards = @()
   foreach ($s in $order) {
     if (-not $map.ContainsKey($s)) { Write-Warning "  missing pile image: $($p.slug)/$s"; continue }
-    $isTarget = ($s -eq $p.target)
-    $attr = if ($isTarget) { ' data-target' } else { '' }
+    $attr = if ($s -eq $p.target) { ' data-target' } else { '' }
     $src = "assets/img/$($p.slug)/$($map[$s].sm)"
     $cards += "        <img class=`"pile__card`"$attr src=`"$src`" alt=`"`" aria-hidden=`"true`" loading=`"lazy`" decoding=`"async`">"
   }
@@ -190,7 +195,7 @@ foreach ($p in $Projects) {
   $cardsHtml = ($cards -join "`n")
 
   $pileBlocks += @"
-      <a class="pile" data-pile href="work/$($p.slug).html" aria-label="$aria">
+      <a class="pile" data-pile href="projects/$($p.slug).html" aria-label="$aria">
         <div class="pile__stage" data-pile-stage>
 $cardsHtml
           <div class="pile__shape" data-pile-shape style="-webkit-mask-image:url('$maskSrc');mask-image:url('$maskSrc')"></div>
@@ -200,26 +205,41 @@ $cardsHtml
 "@
 }
 
-$workHtml = @"
+$indexHtml = @"
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
-$(Get-Head '' "Work $em Will Holman" 'Selected poster, merch, social and campaign design by Will Holman.')
+$(Get-Head '' "Will Holman $em Marketing & Design" "Will Holman $em Marketing & Design $bar Founder. Poster, merch, social and campaign design.")
 </head>
-<body class="no-js">
+<body class="no-js" data-page="projects">
 
 <a class="skip-link" href="#main">Skip to content</a>
+
+<div class="intro" data-intro>
+  <div class="intro__stage" data-intro-stage></div>
+
+  <strong class="intro__mark"><span data-intro-mark>WH</span></strong>
+
+  <div class="intro__rule" data-intro-rule></div>
+  <div class="intro__meta" data-intro-meta>
+    <div class="intro__ticker"><span data-ticker="project">PROJECT</span></div>
+    <div class="intro__ticker" style="text-align:center"><span data-ticker="client">CLIENT</span></div>
+    <div class="intro__count" data-intro-count>00%</div>
+  </div>
+</div>
 
 $(Get-Header '')
 
 <main class="main" id="main">
   <div class="shell">
 
-    <div class="page-head">
-      <p class="page-head__label">Work</p>
-      <h1 class="page-head__title">Selected<br>projects</h1>
-      <p class="page-head__sub">Hover a stack to bring it together. Click to open the project.</p>
-    </div>
+    <section class="hero">
+      <div>
+        <h1 class="hero__name reveal-line"><span data-hero-line>Will Holman</span></h1>
+        <p class="hero__tagline reveal-line"><span data-hero-line>Marketing &amp; Design $bar Founder</span></p>
+      </div>
+      <p class="hero__aside">Projects</p>
+    </section>
 
     <div class="piles">
 $($pileBlocks -join "`n")
@@ -230,21 +250,34 @@ $($pileBlocks -join "`n")
 $(Get-Footer)
 </main>
 
+<script>
+  // hide the masthead copy before first paint so it can rise in behind the intro
+  (function () {
+    var lines = document.querySelectorAll('[data-hero-line]');
+    for (var i = 0; i < lines.length; i++) {
+      lines[i].style.transform = 'translateY(110%)';
+      lines[i].style.opacity = '0';
+    }
+  })();
+</script>
+
 <script src="assets/vendor/gsap.min.js"></script>
+<script src="assets/js/data.js"></script>
 <script src="assets/js/site.js"></script>
 <script src="assets/js/pile.js"></script>
+<script src="assets/js/intro.js"></script>
 </body>
 </html>
 "@
 
-Write-Utf8 (Join-Path $Root 'work.html') $workHtml
-Write-Output "wrote work.html ($($Projects.Count) piles)"
+Write-Utf8 (Join-Path $Root 'index.html') $indexHtml
+Write-Output "wrote index.html ($($Projects.Count) piles)"
 
 # =============================================================================
-#  work/<project>.html
+#  projects/<project>.html
 # =============================================================================
-$workDir = Join-Path $Root 'work'
-New-Item -ItemType Directory -Force -Path $workDir | Out-Null
+$projDir = Join-Path $Root 'projects'
+New-Item -ItemType Directory -Force -Path $projDir | Out-Null
 
 for ($i = 0; $i -lt $Projects.Count; $i++) {
   $p = $Projects[$i]
@@ -263,7 +296,9 @@ for ($i = 0; $i -lt $Projects.Count; $i++) {
     $alt = HtmlEnc ("{0} {1} {2}" -f $p.title, $em, ($s -replace '-', ' '))
     $items += @"
         <figure class="grid__item" data-span="$span">
-          <img src="$src" alt="$alt" loading="lazy" decoding="async">
+          <button class="grid__zoom" type="button" data-zoom aria-label="$alt $em view larger">
+            <img src="$src" alt="$alt" loading="lazy" decoding="async">
+          </button>
         </figure>
 "@
   }
@@ -283,7 +318,7 @@ for ($i = 0; $i -lt $Projects.Count; $i++) {
 <head>
 $(Get-Head '../' "$($p.title) $em Will Holman" $p.desc)
 </head>
-<body class="no-js">
+<body class="no-js" data-page="projects">
 
 <a class="skip-link" href="#main">Skip to content</a>
 
@@ -293,7 +328,7 @@ $(Get-Header '../')
   <div class="shell">
 
     <div class="page-head">
-      <p class="page-head__label"><a href="../work.html">Work</a> / $num</p>
+      <p class="page-head__label"><a href="../index.html">Projects</a> / $num</p>
       <h1 class="page-head__title">$(HtmlEnc $p.title)</h1>
 $clientHtml      <p class="page-head__sub">$(HtmlEnc $p.desc)</p>
     </div>
@@ -320,26 +355,27 @@ $(Get-Footer)
 
 <script src="../assets/vendor/gsap.min.js"></script>
 <script src="../assets/js/site.js"></script>
+<script src="../assets/js/lightbox.js"></script>
 </body>
 </html>
 "@
 
-  Write-Utf8 (Join-Path $workDir "$($p.slug).html") $page
-  Write-Output "wrote work/$($p.slug).html ($($all.Count) images)"
+  Write-Utf8 (Join-Path $projDir "$($p.slug).html") $page
+  Write-Output "wrote projects/$($p.slug).html ($($all.Count) images)"
 }
 
 # =============================================================================
 #  assets/js/data.js  - intro payload
 # =============================================================================
 $IntroPicks = @(
-  'tour-posters/samurai-tour', 'sports-posters/ufc-329-concept', 'merch-designs/design-for-kamaara-villains',
-  'social-media/illumis-2', 'usc-esports/necc-champions-for-usc-esports', 'promotional-material/honda-3',
+  'tour-posters/samurai-tour', 'sports-posters/ufc-van-vs-taira-concept', 'merch-designs/official-design-for-zumiez-dog-years',
+  'social-media/illumis-1', 'usc-esports/necc-champions-for-usc-esports', 'promotional-material/honda-3',
   'tour-posters/yeat-tour', 'sports-posters/ufc-300-concept', 'merch-designs/design-for-zillakami',
   'social-media/rcm-3', 'usc-esports/season-start-usc-esports', 'promotional-material/honda-1',
   'tour-posters/zillakami-tour', 'sports-posters/ufc-320-concept', 'merch-designs/design-for-klean-up-krew-racing',
-  'social-media/seabrook-1', 'usc-esports/playoffs-gameday-graphic-for-usc-gamecok-esports-smash-bros',
+  'social-media/seabrook-1', 'usc-esports/usc-player-introduction-post',
   'promotional-material/engage', 'tour-posters/takanaka-tour', 'sports-posters/ufc-mexico-concept',
-  'merch-designs/official-design-for-zumiez-dog-years', 'social-media/tdg-1', 'tour-posters/joji-tour'
+  'merch-designs/design-for-kamaara-villains', 'social-media/tdg-1', 'tour-posters/joji-tour'
 )
 
 $introPaths = @()
@@ -387,4 +423,11 @@ $credJs
 
 Write-Utf8 (Join-Path $Root 'assets\js\data.js') $dataJs
 Write-Output "wrote assets/js/data.js ($($introPaths.Count) intro images)"
+
+# --- clear out the previous structure ---------------------------------------
+$oldWorkPage = Join-Path $Root 'work.html'
+if (Test-Path $oldWorkPage) { Remove-Item $oldWorkPage -Force; Write-Output 'removed work.html (index.html is the projects page now)' }
+$oldWorkDir = Join-Path $Root 'work'
+if (Test-Path $oldWorkDir) { Remove-Item $oldWorkDir -Recurse -Force; Write-Output 'removed work/ (moved to projects/)' }
+
 Write-Output 'done.'

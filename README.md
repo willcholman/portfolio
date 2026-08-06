@@ -17,21 +17,21 @@ on `file://`, so the light/dark preference won't stick. Use the server.)
 ## Structure
 
 ```
-index.html              home — name, tagline, intro animation
-work.html               the six project piles
-about.html              portrait, bio, links
+index.html              landing page — intro animation, masthead, the six piles
+about.html              portrait, bio, social icons
 contact.html            mailto form + direct links
-work/*.html             one page per project (generated)
+projects/*.html         one page per project (generated)
 
 assets/css/site.css     all styling, both themes
 assets/js/site.js       theme toggle, scroll reveals, contact form
-assets/js/intro.js      homepage entrance animation
+assets/js/intro.js      entrance animation
 assets/js/pile.js       pile → morph → shape → scatter interaction
+assets/js/lightbox.js   click-to-zoom viewer on project pages
 assets/js/data.js       intro payload (generated)
-assets/vendor/          GSAP 3.13 + Flip, vendored locally
+assets/vendor/          GSAP 3.13, vendored locally
 assets/img/             web-ready artwork (originals are gitignored)
 
-tools/generate.ps1      rebuilds work.html, work/*.html and data.js
+tools/generate.ps1      rebuilds index.html, projects/*.html and data.js
 tools/serve.ps1         local preview server
 ```
 
