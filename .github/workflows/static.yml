@@ -16,10 +16,19 @@ permissions:
   id-token: write
 
 # Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+#
+# The group is deliberately NOT the template's "pages": a run wedged in the
+# `waiting` state was holding that group and could not be cancelled (GitHub
+# returned 500/502 on cancel and 422 on reject), so every later run queued
+# behind it forever. A distinct group name means a zombie in the old group
+# can never block deploys again.
+#
+# cancel-in-progress is true so a newer commit supersedes a queued older one
+# rather than the two piling up. Pages deploys swap the artifact atomically,
+# so superseding an in-flight one is safe.
 concurrency:
-  group: "pages"
-  cancel-in-progress: false
+  group: "pages-deploy"
+  cancel-in-progress: true
 
 jobs:
   # Single deploy job since we're just deploying
