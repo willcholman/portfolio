@@ -144,14 +144,19 @@ function Get-Head([string]$prefix, [string]$title, [string]$desc) {
 }
 
 function Get-Header([string]$prefix) {
+  # Extensionless links: GitHub Pages resolves /about to about.html, and
+  # tools/serve.ps1 does the same locally. An empty prefix would give href="",
+  # so the site root is written as "./".
+  # NB: $home is read-only in PowerShell, hence $homeHref
+  $homeHref = if ($prefix) { $prefix } else { './' }
   return @"
 <header class="header">
   <div class="header__inner">
-    <a class="logo" href="${prefix}index.html" aria-label="Will Holman $em home"><span>W</span><span>H</span></a>
+    <a class="logo" href="$homeHref" aria-label="Will Holman $em home"><span>W</span><span>H</span></a>
     <nav class="nav" aria-label="Primary">
-      <a class="nav__link" data-section="projects" href="${prefix}index.html">Projects<span class="nav__arrow" aria-hidden="true">&#8599;</span></a>
-      <a class="nav__link" data-section="about" href="${prefix}about.html">About<span class="nav__arrow" aria-hidden="true">&#8599;</span></a>
-      <a class="nav__link" data-section="contact" href="${prefix}contact.html">Contact<span class="nav__arrow" aria-hidden="true">&#8599;</span></a>
+      <a class="nav__link" data-section="projects" href="$homeHref">Projects<span class="nav__arrow" aria-hidden="true">&#8599;</span></a>
+      <a class="nav__link" data-section="about" href="${prefix}about">About<span class="nav__arrow" aria-hidden="true">&#8599;</span></a>
+      <a class="nav__link" data-section="contact" href="${prefix}contact">Contact<span class="nav__arrow" aria-hidden="true">&#8599;</span></a>
       <button class="toggle" type="button" aria-pressed="false" aria-label="Switch to light mode">
         <span class="toggle__knob" aria-hidden="true"></span>
         <span class="toggle__icon toggle__icon--sun" aria-hidden="true">
@@ -206,7 +211,7 @@ foreach ($p in $Projects) {
   $cardsHtml = ($cards -join "`n")
 
   $pileBlocks += @"
-      <a class="pile" data-pile href="projects/$($p.slug).html" aria-label="$aria">
+      <a class="pile" data-pile href="projects/$($p.slug)" aria-label="$aria">
         <div class="pile__stage" data-pile-stage>
 $cardsHtml
           <div class="pile__shape" data-pile-shape style="-webkit-mask-image:url('$maskSrc');mask-image:url('$maskSrc')"></div>
@@ -242,17 +247,21 @@ $(Get-Head '' "Will Holman $em Marketing & Design" "Will Holman $em Marketing & 
 $(Get-Header '')
 
 <main class="main" id="main">
+
+  <div class="home-head">
+    <div class="home-head__blur" aria-hidden="true"></div>
+    <div class="shell">
+      <section class="hero">
+        <h1 class="hero__name reveal-line"><span data-hero-line>Will Holman</span></h1>
+        <p class="hero__tagline reveal-line"><span data-hero-line>Marketing &amp; Design</span></p>
+      </section>
+    </div>
+  </div>
+
   <div class="shell">
-
-    <section class="hero">
-      <h1 class="hero__name reveal-line"><span data-hero-line>Will Holman</span></h1>
-      <p class="hero__tagline reveal-line"><span data-hero-line>Marketing &amp; Design</span></p>
-    </section>
-
     <div class="piles">
 $($pileBlocks -join "`n")
     </div>
-
   </div>
 
 $(Get-Footer)
@@ -336,7 +345,7 @@ $(Get-Header '../')
   <div class="shell">
 
     <div class="page-head">
-      <p class="page-head__label"><a href="../index.html">Projects</a> / $num</p>
+      <p class="page-head__label"><a href="../">Projects</a> / $num</p>
       <h1 class="page-head__title">$(HtmlEnc $p.title)</h1>
 $clientHtml      <p class="page-head__sub">$(HtmlEnc $p.desc)</p>
     </div>
@@ -348,11 +357,11 @@ $($items -join "`n")
     <nav class="project-nav" aria-label="Projects">
       <div class="project-nav__prev">
         <p class="project-nav__label">Previous</p>
-        <a class="project-nav__link" href="$($prev.slug).html">$(HtmlEnc $prev.title)</a>
+        <a class="project-nav__link" href="$($prev.slug)">$(HtmlEnc $prev.title)</a>
       </div>
       <div>
         <p class="project-nav__label">Next</p>
-        <a class="project-nav__link" href="$($next.slug).html">$(HtmlEnc $next.title)</a>
+        <a class="project-nav__link" href="$($next.slug)">$(HtmlEnc $next.title)</a>
       </div>
     </nav>
 

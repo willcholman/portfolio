@@ -52,9 +52,14 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
-  overflow-x: hidden;
   transition: background-color 0.45s var(--ease), color 0.45s var(--ease);
 }
+
+/* Deliberately NO overflow-x on <body>: a non-visible overflow makes body its
+   own scroll container, which stops position: sticky working on the landing
+   masthead. Nothing overflows horizontally anyway — the intro clips its own
+   flying artwork, and the pile scatter is mathematically bounded to its stage. */
+html { overflow-x: clip; }
 
 /* Theme switch shouldn't animate on first paint */
 body.no-transition, body.no-transition * { transition: none !important; }
@@ -255,9 +260,40 @@ body.no-transition, body.no-transition * { transition: none !important; }
 /* ==========================================================================
    Home
    ========================================================================== */
-/* Landing masthead */
+/* ---------- Landing masthead --------------------------------------------
+   The masthead pins directly beneath the fixed header and stays put while the
+   piles scroll up behind it. Sticky (not fixed) so it keeps its place in flow
+   and the piles start below it without any JS measuring heights.
+   Note: this only works because <body> is not a scroll container — see the
+   comment on body's overflow in the Base section. */
+.home-head {
+  position: sticky;
+  top: var(--header-h);
+  z-index: 50;
+}
+
+/* The frosted band. Separate layer so it can extend past the masthead and
+   fade out, rather than cutting the blur off at a hard edge. */
+.home-head__blur {
+  position: absolute;
+  inset: 0 0 -56px 0;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--bg) 66%, transparent);
+  -webkit-backdrop-filter: blur(24px) saturate(118%);
+          backdrop-filter: blur(24px) saturate(118%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 58%, transparent 100%);
+          mask-image: linear-gradient(to bottom, #000 0, #000 58%, transparent 100%);
+}
+/* Without backdrop-filter there's no blur to see through, so go opaque
+   rather than leaving the masthead sitting illegibly over the artwork. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .home-head__blur { background: var(--bg); }
+}
+
+.home-head .shell { position: relative; z-index: 1; }
+
 .hero {
-  padding: clamp(40px, 7vh, 84px) 0 clamp(56px, 11vh, 132px);
+  padding: clamp(34px, 5.5vh, 68px) 0 clamp(34px, 6vh, 76px);
 }
 
 .hero__name {

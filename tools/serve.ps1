@@ -45,6 +45,12 @@ try {
       $path = Join-Path $Root ($rel -replace '/', '\')
       if (Test-Path $path -PathType Container) { $path = Join-Path $path 'index.html' }
 
+      # Match GitHub Pages: /about serves about.html, so extensionless links
+      # behave the same locally as they do live.
+      if (-not (Test-Path $path -PathType Leaf) -and -not [IO.Path]::GetExtension($path)) {
+        if (Test-Path "$path.html" -PathType Leaf) { $path = "$path.html" }
+      }
+
       # keep requests inside the site folder
       $full = [IO.Path]::GetFullPath($path)
       if (-not $full.StartsWith([IO.Path]::GetFullPath($Root), [StringComparison]::OrdinalIgnoreCase)) {

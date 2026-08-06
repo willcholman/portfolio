@@ -83,11 +83,17 @@
 
     if (!animated) return; // CSS handles the rest state and the hover swap
 
-    /* --- rest layout ---------------------------------------------------- */
+    /* --- rest layout ----------------------------------------------------
+       x/y are pinned to 0 everywhere below on purpose. The :nth-child rules
+       in site.css express the same rest state as a percentage translate for
+       the no-JS/reduced-motion case; GSAP resolves that into a *pixel* x/y
+       when it reads the computed transform, which would then stack on top of
+       xPercent/yPercent and offset every card twice. */
     cards.forEach(function (card, i) {
       var r = REST[i % REST.length];
       gsap.set(card, {
         xPercent: r.x, yPercent: r.y,
+        x: 0, y: 0,
         rotation: r.r, scale: r.s,
         zIndex: i + 1, opacity: 1
       });
@@ -107,7 +113,7 @@
 
       // everything slides onto the target's footprint
       tl.to(cards, {
-        xPercent: 0, yPercent: 0, rotation: 0, scale: MERGED_SCALE,
+        xPercent: 0, yPercent: 0, x: 0, y: 0, rotation: 0, scale: MERGED_SCALE,
         duration: 0.62, ease: "expo.out",
         stagger: { each: 0.022, from: "edges" }
       }, 0);
@@ -141,7 +147,7 @@
       cards.forEach(function (card, i) {
         var r = REST[i % REST.length];
         tl.to(card, {
-          xPercent: r.x, yPercent: r.y,
+          xPercent: r.x, yPercent: r.y, x: 0, y: 0,
           rotation: r.r, scale: r.s, opacity: 1,
           duration: 0.68, ease: "expo.out"
         }, 0.1 + i * 0.018);
@@ -167,7 +173,7 @@
       tl.to(shape, { opacity: 0, duration: 0.2, ease: "power2.in" }, 0.06);
 
       // every image reappears on the shape's footprint …
-      tl.set(cards, { opacity: 1, xPercent: 0, yPercent: 0, rotation: 0, scale: MERGED_SCALE }, 0.1);
+      tl.set(cards, { opacity: 1, xPercent: 0, yPercent: 0, x: 0, y: 0, rotation: 0, scale: MERGED_SCALE }, 0.1);
 
       // … and flies outward
       cards.forEach(function (card, i) {
@@ -175,6 +181,7 @@
         tl.to(card, {
           xPercent: Math.cos(ang) * 165,
           yPercent: Math.sin(ang) * 165,
+          x: 0, y: 0,
           rotation: (i % 2 ? 1 : -1) * (35 + i * 9),
           scale: 0.42,
           opacity: 0,
