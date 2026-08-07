@@ -21,6 +21,9 @@
   var animated = !reduceMotion && typeof window.gsap !== "undefined";
   var gsap = window.gsap;
 
+  // one "snap back to rest" callback per pile, used on back/forward navigation
+  var resetters = [];
+
   /* Resting scatter. Last entry is the target card, so it sits on top and
      nearest the centre — the stack visibly collapses onto it.
 
@@ -89,19 +92,27 @@
        the no-JS/reduced-motion case; GSAP resolves that into a *pixel* x/y
        when it reads the computed transform, which would then stack on top of
        xPercent/yPercent and offset every card twice. */
-    cards.forEach(function (card, i) {
-      var r = REST[i % REST.length];
-      gsap.set(card, {
-        xPercent: r.x, yPercent: r.y,
-        x: 0, y: 0,
-        rotation: r.r, scale: r.s,
-        zIndex: i + 1, opacity: 1
-      });
-    });
-    gsap.set(shape, { scale: MERGED_SCALE, opacity: 0, zIndex: 50 });
-    gsap.set(label, { opacity: 0, y: 14, zIndex: 51 });
-
     function kill() { if (tl) { tl.kill(); tl = null; } }
+
+    /* Snap straight back to the resting pile with no animation. */
+    function applyRest() {
+      kill();
+      state = "rest";
+      cards.forEach(function (card, i) {
+        var r = REST[i % REST.length];
+        gsap.set(card, {
+          xPercent: r.x, yPercent: r.y,
+          x: 0, y: 0,
+          rotation: r.r, scale: r.s,
+          zIndex: i + 1, opacity: 1
+        });
+      });
+      gsap.set(shape, { scale: MERGED_SCALE, opacity: 0, zIndex: 50 });
+      gsap.set(label, { opacity: 0, y: 14, zIndex: 51 });
+    }
+
+    applyRest();
+    resetters.push(applyRest);
 
     /* --- converge ------------------------------------------------------- */
     function merge() {
@@ -230,4 +241,17 @@
   }
 
   Array.prototype.forEach.call(piles, setup);
+
+  /* Clicking a pile scatters its cards off the stage at opacity 0 and then
+     navigates. Browsers restore this page from the back/forward cache exactly
+     as it was — inline styles and all — so pressing Back brought you to a
+     collection that looked like it had vanished. Reset on the way out (so the
+     cached snapshot is clean) and again on the way back in. */
+  function resetAll() {
+    for (var i = 0; i < resetters.length; i++) resetters[i]();
+  }
+  window.addEventListener("pagehide", resetAll);
+  window.addEventListener("pageshow", function (e) {
+    if (e.persisted) resetAll();
+  });
 })();
