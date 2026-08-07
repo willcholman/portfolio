@@ -87,6 +87,41 @@
     }
   })();
 
+  /* ---------- Eastern-time clock in the header -------------------------
+     Always Will's local time, whatever timezone the visitor is in. The zone
+     label comes from Intl, so it reads EDT through the summer and EST through
+     the winter rather than being hard-coded to one of them. */
+  (function clock() {
+    var el = document.querySelector("[data-clock]");
+    if (!el) return;
+
+    var fmt;
+    try {
+      fmt = new Intl.DateTimeFormat("en-US", {
+        timeZone: "America/New_York",
+        hour: "numeric",
+        minute: "2-digit",
+        timeZoneName: "short"
+      });
+      fmt.format(new Date());
+    } catch (e) {
+      return; // no Intl, or the zone database is missing it — leave it blank
+    }
+
+    var last = "";
+    function tick() {
+      var now = new Date();
+      var text = fmt.format(now);
+      if (text === last) return; // only touch the DOM when the minute changes
+      last = text;
+      el.textContent = text;
+      el.setAttribute("datetime", now.toISOString());
+    }
+
+    tick();
+    window.setInterval(tick, 1000);
+  })();
+
   /* ---------- Copy to clipboard ---------------------------------------- */
   (function copyButtons() {
     var btns = document.querySelectorAll("[data-copy]");

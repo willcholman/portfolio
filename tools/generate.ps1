@@ -158,7 +158,10 @@ function Get-Header([string]$prefix) {
   return @"
 <header class="header">
   <div class="header__inner">
-    <a class="logo" href="$homeHref" aria-label="Will Holman $em home"><span>W</span><span>H</span></a>
+    <div class="header__brand">
+      <a class="logo" href="$homeHref" aria-label="Will Holman $em home"><span>W</span><span>H</span></a>
+      <time class="clock" data-clock></time>
+    </div>
     <nav class="nav" aria-label="Primary">
       <a class="nav__link" data-section="projects" href="$homeHref">Projects<span class="nav__arrow" aria-hidden="true">&#8599;&#65038;</span></a>
       <a class="nav__link" data-section="about" href="${prefix}about">About<span class="nav__arrow" aria-hidden="true">&#8599;&#65038;</span></a>
