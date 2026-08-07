@@ -160,9 +160,9 @@ function Get-Header([string]$prefix) {
   <div class="header__inner">
     <a class="logo" href="$homeHref" aria-label="Will Holman $em home"><span>W</span><span>H</span></a>
     <nav class="nav" aria-label="Primary">
-      <a class="nav__link" data-section="projects" href="$homeHref">Projects<span class="nav__arrow" aria-hidden="true">&#8599;</span></a>
-      <a class="nav__link" data-section="about" href="${prefix}about">About<span class="nav__arrow" aria-hidden="true">&#8599;</span></a>
-      <a class="nav__link" data-section="contact" href="${prefix}contact">Contact<span class="nav__arrow" aria-hidden="true">&#8599;</span></a>
+      <a class="nav__link" data-section="projects" href="$homeHref">Projects<span class="nav__arrow" aria-hidden="true">&#8599;&#65038;</span></a>
+      <a class="nav__link" data-section="about" href="${prefix}about">About<span class="nav__arrow" aria-hidden="true">&#8599;&#65038;</span></a>
+      <a class="nav__link" data-section="contact" href="${prefix}contact">Contact<span class="nav__arrow" aria-hidden="true">&#8599;&#65038;</span></a>
       <button class="toggle" type="button" aria-pressed="false" aria-label="Switch to light mode">
         <span class="toggle__knob" aria-hidden="true"></span>
         <span class="toggle__icon toggle__icon--sun" aria-hidden="true">
@@ -181,7 +181,7 @@ function Get-Header([string]$prefix) {
 function Get-Footer() {
   return @"
   <footer class="footer shell">
-    <p>&copy; 2026 Will Holman</p>
+    <p>&copy;&#65038; 2026 Will Holman</p>
     <nav class="footer__social" aria-label="Social">
       <a href="https://www.linkedin.com/in/willcholman/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
       <a href="https://www.instagram.com/willcholman" target="_blank" rel="noopener noreferrer">Instagram</a>

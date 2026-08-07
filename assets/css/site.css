@@ -53,6 +53,13 @@ body {
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
   transition: background-color 0.45s var(--ease), color 0.45s var(--ease);
+
+  /* The arrows (U+2197) and the copyright sign both have emoji presentation
+     forms, which iOS and Android will happily render as colour glyphs. Every
+     such character in the markup is followed by U+FE0E to force text
+     presentation; this reinforces it for browsers that support the property.
+     The site uses no intentional emoji, so applying it globally is safe. */
+  font-variant-emoji: text;
 }
 
 /* Deliberately NO overflow-x on <body>: a non-visible overflow makes body its
