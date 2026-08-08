@@ -370,6 +370,16 @@ body.no-transition, body.no-transition * { transition: none !important; }
   letter-spacing: -0.05em;
 }
 
+/* "Will" set light against the bold surname.
+   Helvetica Neue carries a real Light cut at 300 on macOS and iOS. Windows has
+   no Helvetica and falls back to Arial, which ships only Regular and Bold — and
+   browsers never synthesise a lighter face, only a bolder one — so it lands on
+   Regular there. Still a clear step down from the 700 surname either way. */
+.name-light {
+  font-weight: 300;
+  letter-spacing: -0.035em; /* light faces need a touch less negative tracking */
+}
+
 .hero__tagline {
   margin-top: clamp(12px, 1.4vw, 18px);
   font-size: clamp(0.95rem, 1.55vw, 1.3rem);
