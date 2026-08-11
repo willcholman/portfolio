@@ -87,6 +87,40 @@
     }
   })();
 
+  /* ---------- Client logo cross-fade -----------------------------------
+     Two or more logos take each other's place on a loop; a single one just
+     sits there. Held still for anyone on reduced motion. */
+  (function logoLoops() {
+    var loops = document.querySelectorAll("[data-logo-loop]");
+    for (var i = 0; i < loops.length; i++) {
+      (function (loop) {
+        var items = loop.querySelectorAll(".logo-loop__item");
+        if (items.length < 2 || reduceMotion) return;
+
+        var at = 0;
+        var timer = window.setInterval(function () {
+          items[at].classList.remove("is-active");
+          at = (at + 1) % items.length;
+          items[at].classList.add("is-active");
+        }, 2800);
+
+        // don't cycle while the tab is in the background
+        document.addEventListener("visibilitychange", function () {
+          if (document.hidden) {
+            window.clearInterval(timer);
+            timer = null;
+          } else if (!timer) {
+            timer = window.setInterval(function () {
+              items[at].classList.remove("is-active");
+              at = (at + 1) % items.length;
+              items[at].classList.add("is-active");
+            }, 2800);
+          }
+        });
+      })(loops[i]);
+    }
+  })();
+
   /* ---------- Eastern-time clock in the header -------------------------
      Always Will's local time, whatever timezone the visitor is in. The zone
      label comes from Intl, so it reads EDT through the summer and EST through

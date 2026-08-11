@@ -168,6 +168,9 @@ body.no-transition, body.no-transition * { transition: none !important; }
   line-height: 1;
   padding: 6px 2px;
 }
+/* The W is set light to echo "Will" in the masthead. Same caveat as
+   .name-light: a genuine Light cut only exists where Helvetica Neue does. */
+.logo span:first-child { font-weight: 300; letter-spacing: -0.03em; }
 .logo span { display: inline-block; transition: transform 0.5s var(--ease); }
 .logo:hover span:first-child { transform: translateX(-2px) translateY(-1px); }
 .logo:hover span:last-child  { transform: translateX(2px)  translateY(1px); }
@@ -251,6 +254,54 @@ body.no-transition, body.no-transition * { transition: none !important; }
 .main { padding-top: var(--header-h); }
 
 .page-head { padding: clamp(56px, 10vh, 120px) 0 clamp(32px, 5vh, 56px); }
+
+/* Project heads that carry client logos: title block left, logos right,
+   centred against each other. */
+.page-head--split {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(24px, 5vw, 72px);
+}
+.page-head__main { min-width: 0; }
+
+/* Fixed box so swapping logos of different proportions never shifts the
+   layout; each one is absolutely positioned and letterboxed inside it. */
+.logo-loop {
+  position: relative;
+  flex: none;
+  width: clamp(140px, 19vw, 250px);
+  height: clamp(66px, 8.5vw, 108px);
+}
+
+.logo-loop__item {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center right;
+  opacity: 0;
+  transition: opacity 0.85s var(--ease);
+}
+.logo-loop__item.is-active { opacity: 1; }
+
+/* The source art is monochrome black on transparency, so it would vanish
+   against the dark background. Inverting turns it white. */
+[data-theme="dark"] .logo-loop__item { filter: invert(1); }
+
+/* Stack under the title on narrow screens rather than squeezing both. */
+@media (max-width: 720px) {
+  .page-head--split {
+    display: block;
+  }
+  .logo-loop {
+    width: clamp(130px, 40vw, 200px);
+    height: clamp(60px, 18vw, 88px);
+    margin-top: clamp(22px, 4vh, 34px);
+  }
+  .logo-loop__item { object-position: center left; }
+}
 
 .page-head__label {
   font-size: 12px;

@@ -39,6 +39,10 @@ function HtmlEnc([string]$s) {
 #             Without it the grid follows `pile`, but that array also fixes the
 #             stacking order, so set this when the two need to differ.
 #             Anything not listed is appended alphabetically.
+#  logos    = optional client logos shown beside the project title, from
+#             assets/img/<slug>/logos/. Two or more cross-fade in a loop; a
+#             single one just sits there. They are monochrome black art, so
+#             the CSS inverts them in dark mode.
 $Projects = @(
   [ordered]@{
     slug   = 'social-media'
@@ -48,6 +52,7 @@ $Projects = @(
     desc   = 'Work produced for clients during my time while interning at The Design Group.'
     target = 'illumis-1'
     pile   = @('tdg-1', 'rcm-3', 'greener-2', 'coggin-2', 'seabrook-1', 'illumis-1')
+    logos  = @('tdg')   # single logo, so it sits static rather than cycling
   },
   [ordered]@{
     slug   = 'usc-esports'
@@ -56,10 +61,12 @@ $Projects = @(
     client = ''
     desc   = 'Designs created from my time as Gamecock Esports Social Media Manager.'
     target = 'necc-champions-for-usc-esports'
-    # player introduction post sits mid-stack, near the centre, tucked behind the front card
-    pile   = @('playoffs-gameday-graphic-for-usc-gamecok-esports-smash-bros', 'season-start-usc-esports', 'usc-pubg-1st-place', 'gameday-usc-cs2', 'usc-player-introduction-post', 'necc-champions-for-usc-esports')
+    # index 2 is the bottom-left slot in the rest scatter (see REST in pile.js);
+    # the player introduction post sits there, swapped with the PUBG graphic
+    pile   = @('playoffs-gameday-graphic-for-usc-gamecok-esports-smash-bros', 'season-start-usc-esports', 'usc-player-introduction-post', 'gameday-usc-cs2', 'usc-pubg-1st-place', 'necc-champions-for-usc-esports')
     # ... but runs second on the project page grid
     gridLead = @('playoffs-gameday-graphic-for-usc-gamecok-esports-smash-bros', 'usc-player-introduction-post', 'season-start-usc-esports', 'usc-pubg-1st-place', 'gameday-usc-cs2', 'necc-champions-for-usc-esports')
+    logos    = @('gamecock-esports', 'usc')
   },
   [ordered]@{
     slug   = 'promotional-material'
@@ -78,6 +85,7 @@ $Projects = @(
     desc   = "I${rq}ve created over 100 designs for clients in the past few years${em}here are some of my favorites."
     target = 'official-design-for-zumiez-dog-years'
     pile   = @('design-for-zillakami', 'design-for-klean-up-krew-racing', 'design-for-sosmula-nyc', 'design-for-kamaara-villains', 'official-design-for-city-morgue-band', 'official-design-for-zumiez-dog-years')
+    logos  = @('zumiez', 'city-morgue', 'atl', 'republic-records')
   },
   [ordered]@{
     slug   = 'sports-posters'
@@ -94,8 +102,11 @@ $Projects = @(
     label  = ''
     client = ''
     desc   = "Tour and show posters built around each artist${rq}s visual world."
-    target = 'samurai-tour'
-    pile   = @('yeat-tour', 'zillakami-tour', 'opium-tour', 'takanaka-tour', 'joji-tour', 'samurai-tour')
+    target = 'takanaka-tour'
+    pile   = @('yeat-tour', 'zillakami-tour', 'opium-tour', 'samurai-tour', 'joji-tour', 'takanaka-tour')
+    # keeps the project page running order exactly as it was before Takanaka
+    # was promoted to the front of the pile
+    gridLead = @('yeat-tour', 'zillakami-tour', 'opium-tour', 'takanaka-tour', 'joji-tour', 'samurai-tour')
   }
 )
 
@@ -334,7 +345,31 @@ for ($i = 0; $i -lt $Projects.Count; $i++) {
   $next = $Projects[($i + 1) % $Projects.Count]
 
   $clientHtml = ''
-  if ($p.client) { $clientHtml = "      <p class=`"page-head__client`">$(HtmlEnc $p.client)</p>`n" }
+  if ($p.client) { $clientHtml = "        <p class=`"page-head__client`">$(HtmlEnc $p.client)</p>`n" }
+
+  # client logos beside the title: 2+ cross-fade, 1 sits static.
+  # NB: deliberately NOT $items - that name holds the grid figures built above,
+  # and reusing it here silently replaced the whole grid with these logos.
+  $logoHtml = ''
+  if ($p.logos -and $p.logos.Count -gt 0) {
+    $logoItems = @()
+    for ($k = 0; $k -lt $p.logos.Count; $k++) {
+      $lslug = $p.logos[$k]
+      $file = Join-Path $Img "$($p.slug)\logos\$lslug.png"
+      if (-not (Test-Path $file)) { Write-Warning "  missing logo: $($p.slug)/logos/$lslug.png"; continue }
+      $cls = if ($k -eq 0) { 'logo-loop__item is-active' } else { 'logo-loop__item' }
+      $alt = HtmlEnc (($lslug -replace '-', ' ') + ' logo')
+      $logoItems += "          <img class=`"$cls`" src=`"../assets/img/$($p.slug)/logos/$lslug.png`" alt=`"$alt`" loading=`"lazy`" decoding=`"async`">"
+    }
+    if ($logoItems.Count) {
+      $logoHtml = @"
+
+      <div class="logo-loop" data-logo-loop>
+$($logoItems -join "`n")
+      </div>
+"@
+    }
+  }
 
   $gridClass = if ($p.slug -eq 'merch-designs') { 'grid grid--cutout' } else { 'grid' }
   $num = '{0:00}' -f ($i + 1)
@@ -354,15 +389,17 @@ $(Get-Header '../')
 <main class="main" id="main">
   <div class="shell">
 
-    <div class="page-head">
-      <a class="back-link" href="../" aria-label="Back to projects">
-        <span class="back-link__icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4L7 12l8 8"/></svg>
-        </span>
-      </a>
-      <p class="page-head__label">Projects / $num</p>
-      <h1 class="page-head__title">$(HtmlEnc $p.title)</h1>
-$clientHtml      <p class="page-head__sub">$(HtmlEnc $p.desc)</p>
+    <div class="page-head$(if ($logoHtml) { ' page-head--split' })">
+      <div class="page-head__main">
+        <a class="back-link" href="../" aria-label="Back to projects">
+          <span class="back-link__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4L7 12l8 8"/></svg>
+          </span>
+        </a>
+        <p class="page-head__label">Projects / $num</p>
+        <h1 class="page-head__title">$(HtmlEnc $p.title)</h1>
+$clientHtml        <p class="page-head__sub">$(HtmlEnc $p.desc)</p>
+      </div>$logoHtml
     </div>
 
     <div class="$gridClass">
