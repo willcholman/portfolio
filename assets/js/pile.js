@@ -94,6 +94,13 @@
        xPercent/yPercent and offset every card twice. */
     function kill() { if (tl) { tl.kill(); tl = null; } }
 
+    /* Paint order comes from the inline z-index the generator writes, so a card
+       can sit above another without moving where it lands. Read once, here:
+       from applyRest onwards GSAP owns the style attribute. */
+    var baseZ = cards.map(function (card, i) {
+      return parseInt(card.style.zIndex, 10) || i + 1;
+    });
+
     /* Snap straight back to the resting pile with no animation. */
     function applyRest() {
       kill();
@@ -104,7 +111,7 @@
           xPercent: r.x, yPercent: r.y,
           x: 0, y: 0,
           rotation: r.r, scale: r.s,
-          zIndex: i + 1, opacity: 1
+          zIndex: baseZ[i], opacity: 1
         });
       });
       gsap.set(shape, { scale: MERGED_SCALE, opacity: 0, zIndex: 50 });

@@ -59,7 +59,9 @@
     count.textContent = (index + 1) + " / " + items.length;
   }
 
-  /* Where the big image will land, once the browser has laid it out. */
+  /* Where the big image will land, once the browser has laid it out.
+     getBoundingClientRect() reports the *transformed* box, so callers must
+     have cleared any leftover transform first — show() does. */
   function finalRect() {
     return bigImg.getBoundingClientRect();
   }
@@ -83,11 +85,24 @@
     if (busyTimer) { window.clearTimeout(busyTimer); busyTimer = null; }
   }
 
+  /* Backstop for when the frame or the decode never arrives and the entrance
+     never runs: put the image where it belongs instead of leaving it stranded
+     wherever the last transform happened to stop. */
+  function settleInPlace() {
+    gsapSafeSet({ opacity: 1, x: 0, y: 0, scale: 1 });
+    settle();
+  }
+
   function show(i, fromThumb) {
     index = (i + items.length) % items.length;
     var item = items[index];
 
     busy = true;
+    /* Wipe the previous view's transform before anything measures the image.
+       close() leaves it shrunk onto a thumbnail, and finalRect() reads the
+       transformed box — so without this the zoom would be computed from a
+       stale rect on every open after the first. */
+    gsapSafeSet({ opacity: 0, x: 0, y: 0, scale: 1 });
     bigImg.setAttribute("src", item.src);
     bigImg.setAttribute("alt", item.alt);
     setCount();
@@ -119,13 +134,13 @@
       requestAnimationFrame(paint);
     } else {
       bigImg.onload = function () { requestAnimationFrame(paint); };
-      bigImg.onerror = settle;
+      bigImg.onerror = settleInPlace;
     }
 
     // Never let the viewer strand itself: if the frame or the decode never
-    // arrives, release the lock anyway so the arrows keep working.
+    // arrives, show the image anyway and release the lock so the arrows work.
     if (busyTimer) window.clearTimeout(busyTimer);
-    busyTimer = window.setTimeout(settle, 900);
+    busyTimer = window.setTimeout(settleInPlace, 900);
   }
 
   function gsapSafeSet(props) {
@@ -191,12 +206,25 @@
     if (!isOpen || busy || items.length < 2) return;
     if (!animated) { show(index + dir, null); return; }
     busy = true;
+
+    /* The swap has to happen even if this tween's completion never arrives.
+       busy is only released down in show(), so without a backstop a single
+       dropped frame would lock the arrows for the rest of the visit. */
+    var advanced = false;
+    var advance = function () {
+      if (advanced) return;
+      advanced = true;
+      window.clearTimeout(guard);
+      show(index + dir, null);
+    };
+    var guard = window.setTimeout(advance, 400);
+
     gsap.to(bigImg, {
       opacity: 0,
       scale: 0.975,
       duration: 0.16,
       ease: "power2.in",
-      onComplete: function () { show(index + dir, null); }
+      onComplete: advance
     });
   }
 

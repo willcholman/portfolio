@@ -972,7 +972,11 @@ body.lightbox-open { overflow: hidden; }
   overflow: hidden;
   display: block;
 }
-.intro__mark span { display: block; will-change: transform; }
+/* Direct child only — the W inside it has to stay inline. */
+.intro__mark > span { display: block; will-change: transform; }
+/* Light W against a bold H, matching the header monogram and the masthead.
+   Keeps the mark's own tighter tracking rather than .name-light's. */
+.intro__mark .name-light { letter-spacing: inherit; }
 
 .intro__meta {
   position: absolute;

@@ -34,6 +34,9 @@ function HtmlEnc([string]$s) {
 #  pile     = the six cards, in z-order from BACK to FRONT
 #  target   = the front card, which the stack collapses onto and which becomes
 #             the solid shape carrying the project name (must be last in pile)
+#  stack    = optional paint order, back to front. `pile` position N also fixes
+#             where card N lands in the scatter (see REST in pile.js), so set
+#             this when a card needs to sit above another without moving.
 #  label    = optional raw HTML for the hover label, for controlling line breaks
 #  gridLead = optional running order for the top of the project page grid.
 #             Without it the grid follows `pile`, but that array also fixes the
@@ -64,6 +67,9 @@ $Projects = @(
     # index 2 is the bottom-left slot in the rest scatter (see REST in pile.js);
     # the player introduction post sits there, swapped with the PUBG graphic
     pile   = @('playoffs-gameday-graphic-for-usc-gamecok-esports-smash-bros', 'season-start-usc-esports', 'usc-player-introduction-post', 'gameday-usc-cs2', 'usc-pubg-1st-place', 'necc-champions-for-usc-esports')
+    # ... and paints just under the front card, so it covers the centre graphic
+    # it overlaps instead of being covered by it. Position is unchanged.
+    stack  = @('playoffs-gameday-graphic-for-usc-gamecok-esports-smash-bros', 'season-start-usc-esports', 'gameday-usc-cs2', 'usc-pubg-1st-place', 'usc-player-introduction-post', 'necc-champions-for-usc-esports')
     # ... but runs second on the project page grid
     gridLead = @('playoffs-gameday-graphic-for-usc-gamecok-esports-smash-bros', 'usc-player-introduction-post', 'season-start-usc-esports', 'usc-pubg-1st-place', 'gameday-usc-cs2', 'necc-champions-for-usc-esports')
     logos    = @('gamecock-esports', 'usc')
@@ -134,6 +140,26 @@ function Get-ProjectImages([string]$projectSlug) {
 
 # --- editorial grid rhythm (each run of spans sums to 12) --------------------
 $SpanPattern = @(7, 5, 5, 7, 4, 4, 4, 6, 6, 8, 4, 4, 8)
+
+# --- intrinsic image sizes ---------------------------------------------------
+# Written onto every grid <img> so the browser reserves the right box before the
+# file arrives. Without it each lazy image shoves the rest of the page down as
+# it loads. Cached because the same file is read once per page build.
+Add-Type -AssemblyName System.Drawing
+$DimCache = @{}
+function Get-Dim([string]$path) {
+  if ($DimCache.ContainsKey($path)) { return $DimCache[$path] }
+  $d = $null
+  try {
+    $im = [System.Drawing.Image]::FromFile($path)
+    $d = @{ w = $im.Width; h = $im.Height }
+    $im.Dispose()
+  } catch {
+    Write-Warning "  could not read image size: $path"
+  }
+  $DimCache[$path] = $d
+  return $d
+}
 
 # --- shared chrome -----------------------------------------------------------
 function Get-Head([string]$prefix, [string]$title, [string]$desc) {
@@ -210,18 +236,32 @@ function Get-Footer() {
 #  index.html - intro, masthead, and the piles
 # =============================================================================
 $pileBlocks = @()
-foreach ($p in $Projects) {
+for ($pi = 0; $pi -lt $Projects.Count; $pi++) {
+  $p = $Projects[$pi]
   $map = Get-ProjectImages $p.slug
 
   # honour the declared z-order; guarantee the target ends up on top
   $order = @($p.pile | Where-Object { $_ -ne $p.target }) + @($p.target)
 
+  # Paint order. Defaults to the pile order, which is also what DOM order would
+  # give; written out explicitly either way so pile.js has one thing to read.
+  $stack = if ($p.stack) { @($p.stack | Where-Object { $_ -ne $p.target }) + @($p.target) } else { $order }
+
+  # The grid is two piles wide, so the first row is in the opening viewport.
+  # Deferring an image that is already on screen only delays it.
+  $loading = if ($pi -lt 2) { 'eager' } else { 'lazy' }
+
   $cards = @()
   foreach ($s in $order) {
     if (-not $map.ContainsKey($s)) { Write-Warning "  missing pile image: $($p.slug)/$s"; continue }
     $attr = if ($s -eq $p.target) { ' data-target' } else { '' }
+    $z = [array]::IndexOf([object[]]$stack, $s) + 1
+    if ($z -lt 1) {
+      Write-Warning "  $($p.slug): '$s' is missing from stack, falling back to pile order"
+      $z = [array]::IndexOf([object[]]$order, $s) + 1
+    }
     $src = "assets/img/$($p.slug)/$($map[$s].sm)"
-    $cards += "        <img class=`"pile__card`"$attr src=`"$src`" alt=`"`" aria-hidden=`"true`" loading=`"lazy`" decoding=`"async`">"
+    $cards += "        <img class=`"pile__card`"$attr style=`"z-index:$z`" src=`"$src`" alt=`"`" aria-hidden=`"true`" loading=`"$loading`" decoding=`"async`">"
   }
 
   $maskSrc = "assets/img/$($p.slug)/$($map[$p.target].sm)"
@@ -254,7 +294,7 @@ $(Get-Head '' "Will Holman $em Marketing & Design" "Will Holman $em Marketing & 
 <div class="intro" data-intro>
   <div class="intro__stage" data-intro-stage></div>
 
-  <strong class="intro__mark"><span data-intro-mark>WH</span></strong>
+  <strong class="intro__mark"><span data-intro-mark><span class="name-light">W</span>H</span></strong>
 
   <div class="intro__rule" data-intro-rule></div>
   <div class="intro__meta" data-intro-meta>
@@ -332,10 +372,12 @@ for ($i = 0; $i -lt $Projects.Count; $i++) {
     $span = $SpanPattern[$k % $SpanPattern.Count]
     $src = "../assets/img/$($p.slug)/$($map[$s].lg)"
     $alt = HtmlEnc ("{0} {1} {2}" -f $p.title, $em, ($s -replace '-', ' '))
+    $dim = Get-Dim (Join-Path $Img "$($p.slug)\$($map[$s].lg)")
+    $size = if ($dim) { " width=`"$($dim.w)`" height=`"$($dim.h)`"" } else { '' }
     $items += @"
         <figure class="grid__item" data-span="$span">
           <button class="grid__zoom" type="button" data-zoom aria-label="$alt $em view larger">
-            <img src="$src" alt="$alt" loading="lazy" decoding="async">
+            <img src="$src"$size alt="$alt" loading="lazy" decoding="async">
           </button>
         </figure>
 "@
@@ -359,7 +401,8 @@ for ($i = 0; $i -lt $Projects.Count; $i++) {
       if (-not (Test-Path $file)) { Write-Warning "  missing logo: $($p.slug)/logos/$lslug.png"; continue }
       $cls = if ($k -eq 0) { 'logo-loop__item is-active' } else { 'logo-loop__item' }
       $alt = HtmlEnc (($lslug -replace '-', ' ') + ' logo')
-      $logoItems += "          <img class=`"$cls`" src=`"../assets/img/$($p.slug)/logos/$lslug.png`" alt=`"$alt`" loading=`"lazy`" decoding=`"async`">"
+      # sits in the page header, so it is on screen from the start - not lazy
+      $logoItems += "          <img class=`"$cls`" src=`"../assets/img/$($p.slug)/logos/$lslug.png`" alt=`"$alt`" decoding=`"async`">"
     }
     if ($logoItems.Count) {
       $logoHtml = @"
