@@ -285,7 +285,7 @@ $indexHtml = @"
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
-$(Get-Head '' "Will Holman $em Marketing & Design" "Will Holman $em Marketing & Design. Poster, merch, social and campaign design.")
+$(Get-Head '' "Home" "Will Holman $em Marketing & Design. Poster, merch, social and campaign design.")
 </head>
 <body class="no-js" data-page="projects">
 
@@ -421,7 +421,7 @@ $($logoItems -join "`n")
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
-$(Get-Head '../' "$($p.title) $em Will Holman" $p.desc)
+$(Get-Head '../' "$($p.title)" $p.desc)
 </head>
 <body class="no-js" data-page="projects">
 
