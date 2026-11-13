@@ -121,10 +121,10 @@
     }
   })();
 
-  /* ---------- Eastern-time clock in the header -------------------------
-     Always Will's local time, whatever timezone the visitor is in. The zone
-     label comes from Intl, so it reads EDT through the summer and EST through
-     the winter rather than being hard-coded to one of them. */
+  /* ---------- Pacific-time clock in the header -------------------------
+     Always Pacific time, whatever timezone the visitor is in. The zone label
+     comes from Intl, so it reads PST through the winter and PDT through the
+     summer rather than being hard-coded to one of them. */
   (function clock() {
     var el = document.querySelector("[data-clock]");
     if (!el) return;
@@ -132,7 +132,7 @@
     var fmt;
     try {
       fmt = new Intl.DateTimeFormat("en-US", {
-        timeZone: "America/New_York",
+        timeZone: "America/Los_Angeles",
         hour: "numeric",
         minute: "2-digit",
         timeZoneName: "short"

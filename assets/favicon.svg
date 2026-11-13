@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
   <rect width="100" height="100" rx="14" fill="#000000"/>
-  <!-- W light, H bold - matches the header monogram and the masthead, where
-       "Will" is set light against a bold "Holman". -->
+  <!-- W regular, H bold - matches the header monogram and the masthead, where
+       "Will" is set regular against a bold "Holman". -->
   <text x="50" y="53" fill="#ffffff"
         font-family="Helvetica Neue, Helvetica, Arial, sans-serif"
         font-size="46" letter-spacing="-3"
-        text-anchor="middle" dominant-baseline="central"><tspan font-family="Helvetica Neue, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-weight="300">W</tspan><tspan font-weight="700">H</tspan></text>
+        text-anchor="middle" dominant-baseline="central"><tspan font-weight="400">W</tspan><tspan font-weight="700">H</tspan></text>
 </svg>

@@ -439,7 +439,6 @@ $(Get-Header '../')
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4L7 12l8 8"/></svg>
           </span>
         </a>
-        <p class="page-head__label">Projects / $num</p>
         <h1 class="page-head__title">$(HtmlEnc $p.title)</h1>
 $clientHtml        <p class="page-head__sub">$(HtmlEnc $p.desc)</p>
       </div>$logoHtml
