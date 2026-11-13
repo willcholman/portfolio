@@ -294,7 +294,9 @@ body.no-transition, body.no-transition * { transition: none !important; }
   width: 100%;
   height: 100%;
   object-fit: contain;
-  object-position: center right;
+  /* Centred, so logos of every proportion share one axis as they swap. Pinned
+     to the right edge, a narrow mark sat off to one side of a wide one. */
+  object-position: center;
   opacity: 0;
   transition: opacity 0.85s var(--ease);
 }
@@ -423,10 +425,10 @@ body.no-transition, body.no-transition * { transition: none !important; }
 .home-head__blur {
   --tail: clamp(96px, 15vh, 168px);   /* length of the fade */
   position: absolute;
-  /* The sheet ends a few pixels under the tagline, so artwork scrolling up
+  /* The sheet ends a little way under the tagline, so artwork scrolling up
      starts to soften just before it reaches "Marketing & Design" and the fade
      plays out over the masthead itself rather than below it. */
-  inset: calc(-1 * var(--header-h)) 0 calc(var(--hero-pb) - 14px) 0;
+  inset: calc(-1 * var(--header-h)) 0 calc(var(--hero-pb) - 48px) 0;
   pointer-events: none;
 }
 
