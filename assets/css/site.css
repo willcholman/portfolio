@@ -15,6 +15,13 @@ a { color: inherit; text-decoration: none; }
 :root {
   --sans: "Helvetica Neue", Helvetica, Arial, "Liberation Sans", sans-serif;
 
+  /* For the light "W" / "Will". Helvetica Neue has a true Light on Apple
+     devices. Windows has no Helvetica and Arial has no Light at all — it came
+     out as Regular there, which still read as heavy — so Segoe UI (Light at
+     300, on every Windows machine) sits ahead of Arial. Android resolves
+     Roboto, which also has a real 300. */
+  --sans-light: "Helvetica Neue", "Segoe UI", Roboto, Helvetica, Arial, "Liberation Sans", sans-serif;
+
   --bg:    #000000;
   --fg:    #ffffff;
   --muted: #8c8c8c;
@@ -54,11 +61,10 @@ body {
   min-height: 100vh;
   transition: background-color 0.45s var(--ease), color 0.45s var(--ease);
 
-  /* The arrows (U+2197) and the copyright sign both have emoji presentation
-     forms, which iOS and Android will happily render as colour glyphs. Every
-     such character in the markup is followed by U+FE0E to force text
-     presentation; this reinforces it for browsers that support the property.
-     The site uses no intentional emoji, so applying it globally is safe. */
+  /* The copyright sign has an emoji presentation form. It is followed by
+     U+FE0E in the markup to force text presentation; this reinforces it.
+     (The arrows used to rely on the same trick and phones still drew them as
+     colour emoji, so they are inline SVG now — see .arrow.) */
   font-variant-emoji: text;
 }
 
@@ -168,9 +174,12 @@ body.no-transition, body.no-transition * { transition: none !important; }
   line-height: 1;
   padding: 6px 2px;
 }
-/* The W is set light to echo "Will" in the masthead. Same caveat as
-   .name-light: a genuine Light cut only exists where Helvetica Neue does. */
-.logo span:first-child { font-weight: 300; letter-spacing: -0.03em; }
+/* The W is set light to echo "Will" in the masthead. */
+.logo span:first-child {
+  font-family: var(--sans-light);
+  font-weight: 300;
+  letter-spacing: -0.03em;
+}
 .logo span { display: inline-block; transition: transform 0.5s var(--ease); }
 .logo:hover span:first-child { transform: translateX(-2px) translateY(-1px); }
 .logo:hover span:last-child  { transform: translateX(2px)  translateY(1px); }
@@ -204,10 +213,26 @@ body.no-transition, body.no-transition * { transition: none !important; }
 .nav__link[aria-current="page"]::after { transform: scaleX(1); transform-origin: left; }
 .nav__link[aria-current="page"] { font-weight: 700; }
 
-.nav__arrow {
+/* Arrows are drawn, never typed: U+2197 has an emoji form that phones
+   substitute no matter what the markup asks for. One glyph, stroked in the
+   current colour, sized in em so it tracks the text beside it. */
+.arrow {
   display: inline-block;
-  font-size: 0.82em;
-  margin-left: 3px;
+  width: 0.72em;
+  height: 0.72em;
+  margin-left: 0.3em;
+  vertical-align: 0.02em;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  overflow: visible;
+}
+
+.nav__arrow {
+  margin-left: 4px;
   transition: transform 0.42s var(--ease);
 }
 .nav__link:hover .nav__arrow { transform: translate(2px, -2px); }
@@ -390,22 +415,80 @@ body.no-transition, body.no-transition * { transition: none !important; }
   z-index: 50;
 }
 
-/* The frosted band. Separate layer so it can extend past the masthead and
-   fade out, rather than cutting the blur off at a hard edge. */
+/* ---------- Progressive blur ---------------------------------------------
+   One continuous sheet of glass from the top of the viewport to below the
+   masthead, with no edge anywhere in it.
+
+   A single backdrop-filter can only be faded, not weakened: masking it makes
+   a fully-blurred picture more transparent, so sharp artwork shows through a
+   24px blur and the eye finds the line where one gives way to the other.
+   Here the blur radius itself ramps instead. Five layers, each roughly double
+   the one before (1 / 2 / 4 / 8 / 16px), each starting a little higher than
+   the last and each with its own soft mask. Stacked, the radius climbs from
+   nothing to full across the whole tail, which is how the system blurs on
+   Apple platforms behave.
+
+   The sheet reaches up behind the fixed header, which goes clear on this page
+   (see below), so there is no seam between header and masthead either. */
 .home-head__blur {
+  --tail: clamp(96px, 15vh, 168px);   /* how far the fade runs below the masthead */
   position: absolute;
-  inset: 0 0 -56px 0;
+  inset: calc(-1 * var(--header-h)) 0 calc(-1 * var(--tail)) 0;
   pointer-events: none;
-  background: color-mix(in srgb, var(--bg) 66%, transparent);
-  -webkit-backdrop-filter: blur(24px) saturate(118%);
-          backdrop-filter: blur(24px) saturate(118%);
-  -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 58%, transparent 100%);
-          mask-image: linear-gradient(to bottom, #000 0, #000 58%, transparent 100%);
 }
-/* Without backdrop-filter there's no blur to see through, so go opaque
-   rather than leaving the masthead sitting illegibly over the artwork. */
+
+.home-head__blur i {
+  position: absolute;
+  inset: 0;
+  -webkit-backdrop-filter: blur(var(--b));
+          backdrop-filter: blur(var(--b));
+  -webkit-mask-image: linear-gradient(to top, transparent var(--from), #000 var(--to));
+          mask-image: linear-gradient(to top, transparent var(--from), #000 var(--to));
+}
+.home-head__blur i:nth-child(1) { --b: 1px;  --from: 0px;                      --to: calc(var(--tail) * 0.36); }
+.home-head__blur i:nth-child(2) { --b: 2px;  --from: calc(var(--tail) * 0.12); --to: calc(var(--tail) * 0.56); }
+.home-head__blur i:nth-child(3) { --b: 4px;  --from: calc(var(--tail) * 0.28); --to: calc(var(--tail) * 0.78); }
+.home-head__blur i:nth-child(4) { --b: 8px;  --from: calc(var(--tail) * 0.46); --to: calc(var(--tail) * 1.02); }
+.home-head__blur i:nth-child(5) { --b: 16px; --from: calc(var(--tail) * 0.66); --to: calc(var(--tail) * 1.34); }
+.home-head__blur i:nth-child(5) {
+  -webkit-backdrop-filter: blur(var(--b)) saturate(150%);
+          backdrop-filter: blur(var(--b)) saturate(150%);
+}
+
+/* The tint that keeps the masthead legible. Its stops follow an ease curve
+   rather than a straight line — a linear ramp to transparent leaves a faint
+   band where it starts and stops. */
+.home-head__blur::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  --t: color-mix(in srgb, var(--bg) 72%, transparent);
+  background: linear-gradient(
+    to top,
+    transparent 0,
+    color-mix(in srgb, var(--t)  4%, transparent) calc(var(--tail) * 0.18),
+    color-mix(in srgb, var(--t) 14%, transparent) calc(var(--tail) * 0.36),
+    color-mix(in srgb, var(--t) 32%, transparent) calc(var(--tail) * 0.56),
+    color-mix(in srgb, var(--t) 56%, transparent) calc(var(--tail) * 0.78),
+    color-mix(in srgb, var(--t) 78%, transparent) calc(var(--tail) * 1.0),
+    color-mix(in srgb, var(--t) 93%, transparent) calc(var(--tail) * 1.22),
+    var(--t) calc(var(--tail) * 1.45)
+  );
+}
+
+/* Without backdrop-filter there's no blur to see through, so the tint goes
+   opaque rather than leaving the masthead sitting illegibly over the artwork. */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .home-head__blur { background: var(--bg); }
+  .home-head__blur::after { --t: var(--bg); }
+}
+
+/* On the landing page the header hands its glass to the sheet above. Two
+   separate frosted panels stacked edge to edge can never match exactly, and
+   the mismatch reads as a hard line under the nav. */
+.header:has(+ .main > .home-head) {
+  background: transparent;
+  -webkit-backdrop-filter: none;
+          backdrop-filter: none;
 }
 
 .home-head .shell { position: relative; z-index: 1; }
@@ -421,12 +504,10 @@ body.no-transition, body.no-transition * { transition: none !important; }
   letter-spacing: -0.05em;
 }
 
-/* "Will" set light against the bold surname.
-   Helvetica Neue carries a real Light cut at 300 on macOS and iOS. Windows has
-   no Helvetica and falls back to Arial, which ships only Regular and Bold — and
-   browsers never synthesise a lighter face, only a bolder one — so it lands on
-   Regular there. Still a clear step down from the 700 surname either way. */
+/* "Will" set light against the bold surname. The stack is --sans-light so a
+   genuine Light cut is found on every platform — see the note on the token. */
 .name-light {
+  font-family: var(--sans-light);
   font-weight: 300;
   letter-spacing: -0.035em; /* light faces need a touch less negative tracking */
 }

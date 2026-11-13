@@ -200,9 +200,9 @@ function Get-Header([string]$prefix) {
       <time class="clock" data-clock></time>
     </div>
     <nav class="nav" aria-label="Primary">
-      <a class="nav__link" data-section="projects" href="$homeHref">Projects<span class="nav__arrow" aria-hidden="true">&#8599;&#65038;</span></a>
-      <a class="nav__link" data-section="about" href="${prefix}about">About<span class="nav__arrow" aria-hidden="true">&#8599;&#65038;</span></a>
-      <a class="nav__link" data-section="contact" href="${prefix}contact">Contact<span class="nav__arrow" aria-hidden="true">&#8599;&#65038;</span></a>
+      <a class="nav__link" data-section="projects" href="$homeHref">Projects<svg class="nav__arrow arrow" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M3.25 8.75l5.5-5.5M4 3.25h4.75V8"/></svg></a>
+      <a class="nav__link" data-section="about" href="${prefix}about">About<svg class="nav__arrow arrow" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M3.25 8.75l5.5-5.5M4 3.25h4.75V8"/></svg></a>
+      <a class="nav__link" data-section="contact" href="${prefix}contact">Contact<svg class="nav__arrow arrow" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M3.25 8.75l5.5-5.5M4 3.25h4.75V8"/></svg></a>
       <button class="toggle" type="button" aria-pressed="false" aria-label="Switch to light mode">
         <span class="toggle__knob" aria-hidden="true"></span>
         <span class="toggle__icon toggle__icon--sun" aria-hidden="true">
@@ -309,7 +309,7 @@ $(Get-Header '')
 <main class="main" id="main">
 
   <div class="home-head">
-    <div class="home-head__blur" aria-hidden="true"></div>
+    <div class="home-head__blur" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
     <div class="shell">
       <section class="hero">
         <h1 class="hero__name reveal-line"><span data-hero-line><span class="name-light">Will</span> Holman</span></h1>
