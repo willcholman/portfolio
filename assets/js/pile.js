@@ -21,8 +21,10 @@
   var animated = !reduceMotion && typeof window.gsap !== "undefined";
   var gsap = window.gsap;
 
-  // one "snap back to rest" callback per pile, used on back/forward navigation
+  // one "put yourself right" callback per pile, used when the page is shown
+  // again after a navigation — see restoreAll at the bottom
   var resetters = [];
+  var restorers = [];
 
   /* Resting scatter. Last entry is the target card, so it sits on top and
      nearest the centre — the stack visibly collapses onto it.
@@ -119,7 +121,27 @@
     }
 
     applyRest();
+
+    /* Is this pile supposed to be merged right now? Asked whenever the page
+       comes back, because the events that normally say so will not repeat:
+       a pointer that never left the pile fires no second pointerenter, and an
+       IntersectionObserver only reports changes. */
+    var inView = false;
+    function wantsMerge() {
+      if (hasHover) {
+        try { return pile.matches(":hover") || pile.matches(":focus-visible"); }
+        catch (e) { return pile.matches(":hover"); }
+      }
+      return inView;
+    }
+
+    /* Snap to rest, then pick up wherever the pointer / viewport says. */
+    function restore() {
+      applyRest();
+      if (wantsMerge()) merge();
+    }
     resetters.push(applyRest);
+    restorers.push(restore);
 
     /* --- converge ------------------------------------------------------- */
     function merge() {
@@ -183,6 +205,16 @@
         if (navigated) return;
         navigated = true;
         window.location.href = href;
+
+        /* The cards are now off the stage at opacity 0, which is only fine if
+           this page really goes away. If it doesn't — the visitor hit Back or
+           Stop before the next page arrived, or the request failed — nothing
+           would ever bring them back, and the collection would simply be
+           missing. So if we're still here and still "leaving" shortly after,
+           put the pile back. A page that did unload never runs this. */
+        window.setTimeout(function () {
+          if (state === "leaving") restore();
+        }, 2500);
       };
 
       tl = gsap.timeline({ onComplete: go });
@@ -215,6 +247,9 @@
     /* --- wiring ---------------------------------------------------------- */
     if (hasHover) {
       pile.addEventListener("pointerenter", merge);
+      // Belt and braces for a pointer that was already inside when the page
+      // came back: the first movement merges. merge() is a no-op once merged.
+      pile.addEventListener("pointermove", merge, { passive: true });
       pile.addEventListener("pointerleave", scatter);
       pile.addEventListener("focusin", merge);
       pile.addEventListener("focusout", scatter);
@@ -223,7 +258,8 @@
       var io = new IntersectionObserver(
         function (entries) {
           entries.forEach(function (e) {
-            if (e.isIntersecting) merge();
+            inView = e.isIntersecting;
+            if (inView) merge();
             else scatter();
           });
         },
@@ -251,14 +287,20 @@
 
   /* Clicking a pile scatters its cards off the stage at opacity 0 and then
      navigates. Browsers restore this page from the back/forward cache exactly
-     as it was — inline styles and all — so pressing Back brought you to a
-     collection that looked like it had vanished. Reset on the way out (so the
-     cached snapshot is clean) and again on the way back in. */
-  function resetAll() {
-    for (var i = 0; i < resetters.length; i++) resetters[i]();
+     as it was — inline styles, timers and all — so pressing Back could bring
+     you to a collection that had vanished, or one that no longer responded to
+     the pointer sitting on it.
+
+     Every route back into the page puts the piles right:
+       pagehide   snap to rest, so the snapshot the browser keeps is clean
+       pageshow   restored from the cache: rest again, then re-merge whichever
+                  pile the pointer is on / is in view
+     plus the timer in launch() for a navigation that never completed. */
+  function each(list) {
+    for (var i = 0; i < list.length; i++) list[i]();
   }
-  window.addEventListener("pagehide", resetAll);
+  window.addEventListener("pagehide", function () { each(resetters); });
   window.addEventListener("pageshow", function (e) {
-    if (e.persisted) resetAll();
+    if (e.persisted) each(restorers);
   });
 })();
